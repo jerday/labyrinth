@@ -35,7 +35,7 @@ Viewer::Viewer()
   m_left_click_pressed = false;
   m_middle_click_pressed = false;
   m_right_click_pressed = false;
-  m_camera = Point3D(0.0, 0.0, -40.0);
+  m_camera = Point3D(0.0, 0.0, 0.0);
   m_rotate_x = 0;
   m_rotate_y = 0;
 }
@@ -56,6 +56,24 @@ bool Viewer::invalidate()
   Gtk::Allocation allocation = get_allocation();
   get_window()->invalidate_rect( allocation, false);
 	return true;
+}
+void Viewer::set_mode(Mode m) {
+	m_mode = m;
+	if(m_mode == BIRDS_EYE) {
+		m_camera = Point3D(-m_maze->getWidth()/2.0, -40, m_maze->getHeight()/2.0);
+		m_rotate_x = 90;
+		m_rotate_y = 0;
+		m_mouse_x = 0;
+		m_mouse_y = 0;
+	} else {
+		// todo: move to ball
+		m_camera = Point3D(0.0, 0.0, -40.0);
+		m_rotate_x = 0;
+		m_rotate_y = 0;
+		m_mouse_x = 0;
+		m_mouse_y = 0;
+	}
+	invalidate();
 }
 
 void Viewer::on_realize()
@@ -259,6 +277,7 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
 	m_rotate_y += (event->x-m_mouse_x)/10.0;
 	m_rotate_x += (event->y-m_mouse_y)/10.0;
 
+	/*
 	// Cleanse
 	if(m_rotate_x < -90) {
 		m_rotate_x = -180 - m_rotate_x;
@@ -273,7 +292,7 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
 	} else if(m_rotate_y > 180) {
 		m_rotate_y -= 360;
 	}
-
+*/
 	invalidate();
 	m_mouse_x = event->x;
 	m_mouse_y = event->y;
@@ -471,16 +490,16 @@ void Viewer::set_maze(Maze * maze) {
 void Viewer::draw_maze()
 {
 	// floor
-	draw_floor(m_maze->getWidth()+1, m_maze->getHeight()+2); // why +2?
+	draw_floor(m_maze->getWidth()+2, m_maze->getHeight()+2);
 
 	// outside walls
-	draw_wall(-1,0,-1,m_maze->getWidth()+1,'x');
-	draw_wall(-1,0,-1,m_maze->getHeight()+1,'z');
-	draw_wall(m_maze->getWidth()-1,0,-1,m_maze->getHeight()+1,'z');
-	draw_wall(-1,0,m_maze->getHeight()-1,m_maze->getWidth()+1,'x');
+	draw_wall(-1,0,-1,m_maze->getWidth()+2,'x');
+	draw_wall(-1,0,-1,m_maze->getHeight()+2,'z');
+    draw_wall(m_maze->getWidth(),0,-1,m_maze->getHeight()+2,'z');
+	draw_wall(-1,0,m_maze->getHeight(),m_maze->getWidth()+2,'x');
 
-	for(int x = 0; x < m_maze->getWidth(); x++) {
-		for(int y = 0; y < m_maze->getHeight(); y++) {
+	for(int x = 0; x <= m_maze->getWidth(); x++) {
+		for(int y = 0; y <= m_maze->getHeight(); y++) {
 			char id = (*m_maze)(x,y);
 			if(id == 'w') {
 				draw_wall(x,0,y,1,'x');

@@ -18,7 +18,7 @@ AppWindow::AppWindow()
   sigc::slot1<void, Viewer::Mode> mode_slot = sigc::mem_fun(m_viewer, &Viewer::set_mode);
   Gtk::RadioButtonGroup group = Gtk::RadioButtonGroup();
   m_menu_mode.items().push_back(RadioMenuElem(group, "_Bird's eye view", Gtk::AccelKey("b"), sigc::bind( mode_slot, Viewer::BIRDS_EYE ) ) );
-  m_menu_mode.items().push_back(RadioMenuElem(group, "_Game", Gtk::AccelKey("b"), sigc::bind( mode_slot, Viewer::GAME ) ) );
+  m_menu_mode.items().push_back(RadioMenuElem(group, "_Game", Gtk::AccelKey("g"), sigc::bind( mode_slot, Viewer::GAME ) ) );
 
 
   // Set up the menu bar
@@ -73,5 +73,6 @@ bool AppWindow::parse_maze(std::string filename)
 	}
 
 	m_viewer.set_maze(m_maze);
+	m_viewer.set_mode(Viewer::BIRDS_EYE);
 	return true;
 }

@@ -22,7 +22,7 @@ public:
 	  BIRDS_EYE,
 	  GAME
   };
-  void set_mode(Mode m) { m_mode = m; }
+  void set_mode(Mode m);
 
 protected:
 
