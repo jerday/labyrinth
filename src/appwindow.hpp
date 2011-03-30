@@ -21,6 +21,7 @@ private:
   Gtk::MenuBar m_menubar;
   // Each menu itself
   Gtk::Menu m_menu_app;
+  Gtk::Menu m_menu_mode;
 
   Viewer m_viewer;
 

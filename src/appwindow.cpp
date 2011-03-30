@@ -14,8 +14,18 @@ AppWindow::AppWindow()
   // Set up the application menu
   m_menu_app.items().push_back(MenuElem("_Quit", Gtk::AccelKey("q"), sigc::mem_fun(*this, &AppWindow::hide)));
 
+  // Set up the mode menu
+  sigc::slot1<void, Viewer::Mode> mode_slot = sigc::mem_fun(m_viewer, &Viewer::set_mode);
+  Gtk::RadioButtonGroup group = Gtk::RadioButtonGroup();
+  m_menu_mode.items().push_back(RadioMenuElem(group, "_Bird's eye view", Gtk::AccelKey("b"), sigc::bind( mode_slot, Viewer::BIRDS_EYE ) ) );
+  m_menu_mode.items().push_back(RadioMenuElem(group, "_Game", Gtk::AccelKey("b"), sigc::bind( mode_slot, Viewer::GAME ) ) );
+
+
   // Set up the menu bar
   m_menubar.items().push_back(MenuElem("_File", m_menu_app));
+
+  // Modes
+  m_menubar.items().push_back(MenuElem("_Mode", m_menu_mode));
 
   // First add the vertical box as our single "top" widget
   add(m_vbox);

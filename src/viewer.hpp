@@ -18,6 +18,11 @@ public:
   // call when the time is right.
   bool invalidate();
   void set_maze(Maze * maze);
+  enum Mode {
+	  BIRDS_EYE,
+	  GAME
+  };
+  void set_mode(Mode m) { m_mode = m; }
 
 protected:
 
@@ -44,7 +49,8 @@ private:
   bool m_left_click_pressed;
   bool m_middle_click_pressed;
   bool m_right_click_pressed;
-
+  int m_width;
+  int m_height;
   double m_mouse_x;
   double m_mouse_y;
   double m_rotate_y;
@@ -53,6 +59,8 @@ private:
   Point3D m_camera;
 
   Maze * m_maze;
+
+  Mode m_mode;
 };
 
 #endif

@@ -36,11 +36,18 @@ Viewer::Viewer()
   m_middle_click_pressed = false;
   m_right_click_pressed = false;
   m_camera = Point3D(0.0, 0.0, -40.0);
+  m_rotate_x = 0;
+  m_rotate_y = 0;
 }
 
 Viewer::~Viewer()
 {
   // Nothing to do here right now.
+}
+
+void set_cursor(int x, int y)
+{
+	gdk_display_warp_pointer(gdk_display_get_default(), gdk_screen_get_default(), x, y);
 }
 
 bool Viewer::invalidate()
@@ -77,6 +84,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	(void) event;
 	Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
 	glDrawBuffer(GL_BACK);
+	//set_cursor(m_width/2,m_height/2);
 
 	if (!gldrawable->gl_begin(get_gl_context()))
 		return false;
@@ -144,7 +152,8 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
 	glLoadIdentity();
 	glViewport(0.0, 0, event->width, event->height);
 	gluPerspective(40.0, (GLfloat)event->width/(GLfloat)event->height, 0.1, 1000.0);
-
+	m_width = event->width;
+	m_height = event->height;
 	// Reset to modelview matrix mode
 	glMatrixMode(GL_MODELVIEW);
 	gldrawable->gl_end();
@@ -162,7 +171,9 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 		xrotrad = (m_rotate_x / 180) * 3.141592654;
 		m_camera[0] -= sin(yrotrad);
 		m_camera[1] += sin(xrotrad);
-		m_camera[2] += cos(yrotrad);
+		m_camera[2] += cos(yrotrad)*cos(xrotrad);
+		std::cout << "Camera: (" << m_camera[0] << "," << m_camera[1] << "," << m_camera[2] << ")" << std::endl;
+		std::cout << "Rotate (" << m_rotate_x << "," << m_rotate_y << ")" << std::endl;
 		break;
 	case GDK_S:
 	case GDK_s:
@@ -171,21 +182,27 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 		xrotrad = (m_rotate_x / 180) * 3.141592654;
 		m_camera[0] += sin(yrotrad);
 		m_camera[1] -= sin(xrotrad);
-		m_camera[2] -= cos(yrotrad);
+		m_camera[2] -= cos(yrotrad)*cos(xrotrad);
+		std::cout << "Camera: (" << m_camera[0] << "," << m_camera[1] << "," << m_camera[2] << ")" << std::endl;
+		std::cout << "Rotate (" << m_rotate_x << "," << m_rotate_y << ")" << std::endl;
 		break;
 	case GDK_A:
 	case GDK_a:
 	case GDK_Left:
 		yrotrad = (m_rotate_y / 180) * 3.141592654;
-		m_camera[0] += cos(yrotrad) * 0.2;
-		m_camera[2] += sin(yrotrad) * 0.2;
+		m_camera[0] += cos(yrotrad);
+		m_camera[2] += sin(yrotrad);
+		std::cout << "Camera: (" << m_camera[0] << "," << m_camera[1] << "," << m_camera[2] << ")" << std::endl;
+		std::cout << "Rotate (" << m_rotate_x << "," << m_rotate_y << ")" << std::endl;
 		break;
 	case GDK_D:
 	case GDK_d:
 	case GDK_Right:
 		yrotrad = (m_rotate_y / 180) * 3.141592654;
-		m_camera[0] -= cos(yrotrad) * 0.2;
-		m_camera[2] -= sin(yrotrad) * 0.2;
+		m_camera[0] -= cos(yrotrad);
+		m_camera[2] -= sin(yrotrad);
+		std::cout << "Camera: (" << m_camera[0] << "," << m_camera[1] << "," << m_camera[2] << ")" << std::endl;
+		std::cout << "Rotate (" << m_rotate_x << "," << m_rotate_y << ")" << std::endl;
 		break;
 	}
 	invalidate();
@@ -236,8 +253,27 @@ bool Viewer::on_button_release_event(GdkEventButton* event)
 
 bool Viewer::on_motion_notify_event(GdkEventMotion* event)
 {
+	// Constraints:
+	// m_rotate_x between -90 and 90
+	// m_rotate_y between 0 and 360
 	m_rotate_y += (event->x-m_mouse_x)/10.0;
 	m_rotate_x += (event->y-m_mouse_y)/10.0;
+
+	// Cleanse
+	if(m_rotate_x < -90) {
+		m_rotate_x = -180 - m_rotate_x;
+		m_rotate_y += 180;
+	} else if(m_rotate_x > 90) {
+		m_rotate_x = 180 - m_rotate_x;
+		m_rotate_y += 180;
+	}
+
+	if (m_rotate_y < -180) {
+		m_rotate_y += 360;
+	} else if(m_rotate_y > 180) {
+		m_rotate_y -= 360;
+	}
+
 	invalidate();
 	m_mouse_x = event->x;
 	m_mouse_y = event->y;
@@ -434,9 +470,6 @@ void Viewer::set_maze(Maze * maze) {
 
 void Viewer::draw_maze()
 {
-	std::cout << "calling draw_maze with width = " << m_maze->getWidth() << ", height = " << m_maze->getHeight() << std::endl;
-
-
 	// floor
 	draw_floor(m_maze->getWidth()+1, m_maze->getHeight()+2); // why +2?
 
