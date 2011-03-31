@@ -5,6 +5,7 @@
 #include <gtkglmm.h>
 #include "algebra.hpp"
 #include "maze.hpp"
+#include "ball.hpp"
 
 // The "main" OpenGL widget
 class Viewer : public Gtk::GL::DrawingArea {
@@ -42,7 +43,7 @@ protected:
   virtual bool on_key_press_event(GdkEventKey* event);
   void draw_cube(double x, double y, double z);
   void draw_floor(const int width, const int height);
-  void draw_wall(double x, double y, double z, double length, char dir);
+  void draw_wall(double x, double y, double z, int length, char dir, Colour c);
   void draw_maze();
 
 private:
@@ -55,12 +56,16 @@ private:
   double m_mouse_y;
   double m_rotate_y;
   double m_rotate_x;
+  double m_tilt_x;
+  double m_tilt_z;
 
   Point3D m_camera;
 
   Maze * m_maze;
 
   Mode m_mode;
+
+  Ball m_ball;
 };
 
 #endif

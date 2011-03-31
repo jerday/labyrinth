@@ -35,7 +35,7 @@ Image::~Image()
 Image& Image::operator=(const Image& other)
 {
   delete [] m_data;
-  
+
   m_width = other.m_width;
   m_height = other.m_height;
   m_elements = other.m_elements;
@@ -46,7 +46,7 @@ Image& Image::operator=(const Image& other)
                 other.m_data,
                 m_width * m_height * m_elements * sizeof(double));
   }
-  
+
   return *this;
 }
 
@@ -84,9 +84,9 @@ bool Image::savePng(const std::string& filename)
 
   /* Setup PNG I/O */
   png_init_io(png_ptr, fout);
-	 
+
   /* Optionally setup a callback to indicate when a row has been
-   * written. */  
+   * written. */
 
   /* Setup filtering. Use Paeth filtering */
   png_set_filter(png_ptr, 0, PNG_FILTER_PAETH);
@@ -113,34 +113,34 @@ bool Image::savePng(const std::string& filename)
   default:
     return false;
   }
-   
+
   png_set_IHDR(png_ptr, info_ptr,
                m_width, m_height,
-               8, 
+               8,
                color_type,
-               PNG_INTERLACE_NONE, 
-               PNG_COMPRESSION_TYPE_DEFAULT, 
+               PNG_INTERLACE_NONE,
+               PNG_COMPRESSION_TYPE_DEFAULT,
                PNG_FILTER_TYPE_DEFAULT);
-  png_write_info(png_ptr, info_ptr); 
-    
+  png_write_info(png_ptr, info_ptr);
+
   // Actual writing
   png_byte* tempLine = new png_byte[m_width * m_elements];
-  
+
   for(int i=0;i<m_height;i++){
     for(int j=0;j<m_width;j++){
       for(int k = 0;k<m_elements;k++) {
         // Clamp the value
         double value = std::min(1.0, std::max(0.0, (*this)(j, i, k)));
-        
+
         // Write it out
-        tempLine[m_elements*j+k] = static_cast<png_byte>(value*255.0); 
+        tempLine[m_elements*j+k] = static_cast<png_byte>(value*255.0);
       }
     }
     png_write_row(png_ptr, tempLine);
   }
-  
+
   delete [] tempLine;
-  
+
   // closing and freeing the structs
   png_write_end(png_ptr, info_ptr);
   png_destroy_write_struct(&png_ptr, &info_ptr);
@@ -157,7 +157,7 @@ bool Image::loadPng(const std::string& filename)
   FILE* in = std::fopen(filename.c_str(), "rb");
 
   if (!in) return false;
-  
+
   for (int i = 0; i < 8; i++) {
     if (!(buf[i] = fgetc(in))) return false;
   }
@@ -178,10 +178,10 @@ bool Image::loadPng(const std::string& filename)
     png_destroy_read_struct(&png_ptr, 0, 0);
     return false;
   }
-  
+
   //  png_set_read_fn(png_ptr, reinterpret_cast<void*>(&in), my_istream_read_data);
   png_init_io(png_ptr, in);
-  
+
   png_set_sig_bytes(png_ptr, 8);
 
   png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, 0);
@@ -227,7 +227,7 @@ bool Image::loadPng(const std::string& filename)
     m_elements = 1;
     break;
   }
-  
+
   png_bytep* row_pointers = png_get_rows(png_ptr, info_ptr);
 
   m_data = new double[m_width * m_height * m_elements];
@@ -237,13 +237,13 @@ bool Image::loadPng(const std::string& filename)
       for (int i = 0; i < m_elements; i++) {
 	png_byte *row = row_pointers[y];
 	int index = m_elements * (y * m_width + x) + i;
-	
+
         long element = 0;
         for (int j = bit_depth/8 - 1; j >= 0; j--) {
           element <<= 8;
           element += row[(x * m_elements + i) * bit_depth/8 + j];
         }
-        
+
 	m_data[index] = element / static_cast<double>((1 << bit_depth) - 1);
       }
     }

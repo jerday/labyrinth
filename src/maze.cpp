@@ -1,4 +1,5 @@
 #include "maze.hpp"
+#include <iostream>
 
 Maze::Maze() {
 
@@ -13,23 +14,23 @@ Maze::Maze(Image & img)
 	int r,g,b;
 	bool start_found = false;
 	bool end_found = false;
+
 	for(int w = 0; w < m_width;w++) {
 		for(int h = 0; h < m_height; h++) {
 			r = img(w,h,0);
 			g = img(w,h,1);
 			b = img(w,h,2);
-
 			// white
 			if(r && g && b) {
-				m_maze_data[w*m_width + h] = 'e'; // wall
+				m_maze_data[w*m_height + h] = 'e'; // wall
 			}
 			// black
 			else if(!r && !g && !b) {
-				m_maze_data[w*m_width + h] = 'w'; // empty
+				m_maze_data[w*m_height + h] = 'w'; // empty
 			}
 			// red
 			else if(r && !g && !b) {
-				m_maze_data[w*m_width + h] = 'f'; // finish
+				m_maze_data[w*m_height + h] = 'f'; // finish
 				if(end_found) {
 					m_valid = false;
 					m_error_message = "Multiple exits";
@@ -39,7 +40,7 @@ Maze::Maze(Image & img)
 			}
 			// green
 			else if(!r && g && !b) {
-				m_maze_data[w*m_width + h] = 's'; // start
+				m_maze_data[w*m_height + h] = 's'; // start
 				if(start_found) {
 					m_valid = false;
 					m_error_message = "Multiple starting points";
@@ -49,7 +50,7 @@ Maze::Maze(Image & img)
 			}
 			// blue
 			else if(!r && !g && b) {
-				m_maze_data[w*m_width + h] = 'h'; // hole
+				m_maze_data[w*m_height + h] = 'h'; // hole
 			} else {
 				m_valid = false;
 			}
@@ -70,5 +71,5 @@ Maze::~Maze() {
 }
 
 char Maze::operator()(int x, int y) {
-	return m_maze_data[x*m_width + y];
+	return m_maze_data[x*m_height + y];
 }
