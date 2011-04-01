@@ -69,7 +69,7 @@ void Viewer::set_mode(Mode m) {
 		m_mouse_x = 0;
 		m_mouse_y = 0;
 	} else {
-		m_camera = Point3D(m_ball.m_location[0],m_ball.m_location[1] - 30,m_ball.m_location[2]);
+		m_camera = Point3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
 		m_rotate_x = 90;
 		m_rotate_y = 0;
 		m_mouse_x = 0;
@@ -137,7 +137,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	glShadeModel ( GL_SMOOTH );
 
 	if(m_mode == GAME) {
-		m_camera = Point3D(m_ball.m_location[0],m_ball.m_location[1] - 30,m_ball.m_location[2]);
+		m_camera = Point3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
 	}
 
 	// for flying mode, rotate y based on mouse x
