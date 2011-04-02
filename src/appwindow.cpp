@@ -20,12 +20,28 @@ AppWindow::AppWindow()
   m_menu_mode.items().push_back(RadioMenuElem(group, "_Bird's eye view", Gtk::AccelKey("b"), sigc::bind( mode_slot, Viewer::BIRDS_EYE ) ) );
   m_menu_mode.items().push_back(RadioMenuElem(group, "_Game", Gtk::AccelKey("g"), sigc::bind( mode_slot, Viewer::GAME ) ) );
 
+ // Texture menu
+  sigc::slot1<void, Viewer::Skybox> skybox_slot = sigc::mem_fun(m_viewer, &Viewer::set_skybox);
+  Gtk::RadioButtonGroup sky = Gtk::RadioButtonGroup();
+  m_menu_textures.items().push_back(RadioMenuElem(sky, "_Alpine", sigc::bind( skybox_slot, Viewer::ALPINE)));
+  m_menu_textures.items().push_back(RadioMenuElem(sky, "_Calm", sigc::bind( skybox_slot, Viewer::CALM)));
+  m_menu_textures.items().push_back(RadioMenuElem(sky, "C_ity", sigc::bind( skybox_slot, Viewer::CITY)));
+  m_menu_textures.items().push_back(RadioMenuElem(sky, "_Desert Evening", sigc::bind( skybox_slot, Viewer::DESERT_EVENING)));
+  m_menu_textures.items().push_back(RadioMenuElem(sky, "_Entropic", sigc::bind( skybox_slot, Viewer::ENTROPIC)));
+  m_menu_textures.items().push_back(RadioMenuElem(sky, "_Hourglass", sigc::bind( skybox_slot, Viewer::HOURGLASS)));
+  m_menu_textures.items().push_back(RadioMenuElem(sky, "_Islands", sigc::bind( skybox_slot, Viewer::ISLANDS)));
+  m_menu_textures.items().push_back(RadioMenuElem(sky, "_Lost Valley", sigc::bind( skybox_slot, Viewer::LOST_VALLEY)));
+  m_menu_textures.items().push_back(RadioMenuElem(sky, "_Night Sky", sigc::bind( skybox_slot, Viewer::NIGHT_SKY)));
+  m_menu_textures.items().push_back(RadioMenuElem(sky, "_Red", sigc::bind( skybox_slot, Viewer::RED)));
 
   // Set up the menu bar
   m_menubar.items().push_back(MenuElem("_File", m_menu_app));
 
   // Modes
   m_menubar.items().push_back(MenuElem("_Mode", m_menu_mode));
+
+  // Textures
+  m_menubar.items().push_back(MenuElem("_Textures", m_menu_textures));
 
   // First add the vertical box as our single "top" widget
   add(m_vbox);

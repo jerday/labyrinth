@@ -23,7 +23,21 @@ public:
 	  BIRDS_EYE,
 	  GAME
   };
+
+  enum Skybox {
+	  ALPINE,
+	  CALM,
+	  CITY,
+	  DESERT_EVENING,
+	  ENTROPIC,
+	  HOURGLASS,
+	  ISLANDS,
+	  LOST_VALLEY,
+	  NIGHT_SKY,
+	  RED
+  };
   void set_mode(Mode m);
+  void set_skybox(Skybox s);
 
 protected:
 
@@ -46,6 +60,7 @@ protected:
   void draw_wall(double x, double y, double z, int length, char dir, Colour c);
   void draw_maze();
   void draw_skybox();
+  void configure_skybox();
 
 private:
   bool m_left_click_pressed;
@@ -65,6 +80,7 @@ private:
   Maze * m_maze;
 
   Mode m_mode;
+  Skybox m_skybox;
 
   Ball m_ball;
 

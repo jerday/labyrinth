@@ -40,6 +40,7 @@ Viewer::Viewer()
   m_rotate_y = 0;
   m_tilt_x = 0;
   m_tilt_z = 0;
+  m_skybox = ALPINE;
 }
 
 Viewer::~Viewer()
@@ -155,6 +156,11 @@ void Viewer::set_mode(Mode m) {
 	invalidate();
 }
 
+void Viewer::set_skybox(Skybox s) {
+	m_skybox = s;
+	configure_skybox();
+	invalidate();
+}
 void Viewer::on_realize()
 {
   // Do some OpenGL setup.
@@ -264,25 +270,53 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
 	// Reset to modelview matrix mode
 	glMatrixMode(GL_MODELVIEW);
 	gldrawable->gl_end();
+	configure_skybox();
+	return true;
 
+
+}
+
+void Viewer::configure_skybox() {
 	// Load Texture Map
-    BMPImage *image[6];
+	std::string map;
+	if(m_skybox == Viewer::ALPINE) {
+		map = "alpine";
+	} else if (m_skybox == Viewer::CALM) {
+		map = "calm";
+	} else if (m_skybox == Viewer::CITY) {
+		map = "city";
+	} else if (m_skybox == Viewer::DESERT_EVENING) {
+		map = "desert_evening";
+	} else if (m_skybox == Viewer::HOURGLASS) {
+		map = "hourglass";
+	} else if (m_skybox == Viewer::ENTROPIC) {
+		map = "entropic";
+	} else if (m_skybox == Viewer::NIGHT_SKY) {
+		map = "nightsky";
+	} else if (m_skybox == Viewer::ISLANDS) {
+		map = "islands";
+	} else if (m_skybox == Viewer::RED) {
+		map = "red";
+	} else if (m_skybox == Viewer::LOST_VALLEY) {
+		map = "lostvalley";
+	}
+	BMPImage *image[6];
 
 	std::string filenames[6];
-	filenames[0] = "../data/lostvalley_south.bmp";
-	filenames[1] = "../data/lostvalley_east.bmp";
-	filenames[2] = "../data/lostvalley_north.bmp";
-	filenames[3] = "../data/lostvalley_up.bmp";
-	filenames[4] = "../data/lostvalley_down.bmp";
-	filenames[5] = "../data/lostvalley_west.bmp";
+	filenames[0] = "../data/" + map + "_south.bmp";
+	filenames[1] = "../data/" + map + "_east.bmp";
+	filenames[2] = "../data/" + map + "_north.bmp";
+	filenames[3] = "../data/" + map + "_up.bmp";
+	filenames[4] = "../data/" + map + "_down.bmp";
+	filenames[5] = "../data/" + map + "_west.bmp";
 
 	for(int i = 0; i < 6; i++) {
-	    image[i] = (BMPImage *) malloc(sizeof(BMPImage));
-	    if (image[i] == NULL) {
-	    	printf("Error allocating space for image");
-	    	exit(0);
-	    }
-	    if (!ImageLoad(filenames[i], image[i])) {
+		image[i] = (BMPImage *) malloc(sizeof(BMPImage));
+		if (image[i] == NULL) {
+			printf("Error allocating space for image");
+			exit(0);
+		}
+		if (!ImageLoad(filenames[i], image[i])) {
 			std::cerr << "Error opening file: " << filenames[i] << std::endl;
 			exit(1);
 		} else {
@@ -298,9 +332,7 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
 			glTexImage2D(GL_TEXTURE_2D, 0, 3, image[i]->sizeX, image[i]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, image[i]->data);
 		}
 	}
-	return true;
 }
-
 bool Viewer::on_key_press_event(GdkEventKey* event)
 {
 	double xrotrad, yrotrad;
