@@ -6,6 +6,7 @@
 #include "algebra.hpp"
 #include "maze.hpp"
 #include "ball.hpp"
+#include "tga.hpp"
 
 // The "main" OpenGL widget
 class Viewer : public Gtk::GL::DrawingArea {
@@ -61,6 +62,7 @@ protected:
   void draw_maze();
   void draw_skybox();
   void configure_skybox();
+  void configure_textures();
 
 private:
   bool m_left_click_pressed;
@@ -85,6 +87,7 @@ private:
   Ball m_ball;
 
   GLuint m_texture[6];
+  GLuint m_wall_textures[1];
 };
 
 #endif
