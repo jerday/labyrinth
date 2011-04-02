@@ -141,7 +141,7 @@ void Viewer::set_mode(Mode m) {
 	m_mode = m;
 
 	if(m_mode == BIRDS_EYE) {
-		m_camera = Point3D(0.0,-40,0.0);//-m_maze->getWidth()/2.0, -40, m_maze->getHeight()/2.0);
+		m_camera = Point3D(0.0,40,0.0);//-m_maze->getWidth()/2.0, -40, m_maze->getHeight()/2.0);
 		m_rotate_x = 90;
 		m_rotate_y = 0;
 		m_mouse_x = 0;
@@ -220,8 +220,6 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	glShadeModel ( GL_SMOOTH );
 
 	if(m_mode == GAME) {
-		std::cout << "ball: " << m_ball.m_location << std::endl;
-		std::cout << "m_rotate_x = " << m_rotate_x << " ; m_rotate_y = " << m_rotate_y << std::endl;
 		double balldist = 4;
 		double yrotrad = (m_rotate_y / 180) * 3.141592654;
 		double xrotrad = (m_rotate_x / 180) * 3.141592654;
@@ -230,7 +228,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 		double zball = balldist*cos(xrotrad)*cos(yrotrad);
 	
 		m_camera = Point3D(m_ball.m_location[0]+xball,
-				m_ball.m_location[1]-hball,m_ball.m_location[2]-zball);
+				m_ball.m_location[1]+hball,m_ball.m_location[2]-zball);
 	}
 	std::cout << "camera: " << m_camera << std::endl;
 
@@ -238,7 +236,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	glRotated(m_rotate_x,1.0,0.0,0.0);
 	glRotated(m_rotate_y,0.0,1.0,0.0);
 
-	glTranslated(m_camera[0],m_camera[1],m_camera[2]);
+	glTranslated(m_camera[0],-m_camera[1],m_camera[2]);
 	draw_skybox();
 
 	// draw origin
@@ -670,16 +668,16 @@ void Viewer::draw_maze()
 	draw_floor(width+2,height+2);
 
 	// outside walls
-	//draw_wall(-width/2-1, 0,  height/2+1, width+2,'x',Colour(0,0,1));
-	//draw_wall(-width/2-1, 0,  height/2+1, height+2,'z',Colour(0,0,1));
-	//draw_wall(-width/2-1, 0, -height/2-1, width+2,'x',Colour(0,0,1));
-	//draw_wall( width/2+1, 0,  height/2+1, height+2,'z',Colour(0,0,1));
+	draw_wall(-width/2-1, 0,  height/2+1, width+2,'x',Colour(0,0,1));
+	draw_wall(-width/2-1, 0,  height/2+1, height+2,'z',Colour(0,0,1));
+	draw_wall(-width/2-1, 0, -height/2-1, width+2,'x',Colour(0,0,1));
+	draw_wall( width/2+1, 0,  height/2+1, height+2,'z',Colour(0,0,1));
 
 	for(int x = 0; x < m_maze->getWidth(); x++) {
 		for(int z = 0; z < m_maze->getHeight(); z++) {
 			char id = (*m_maze)(x,z);
 			if(id == 'w') {
-				//draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
+				draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
 			}
 			if(id == 's') {
 				m_ball = Ball((int)width/2 + x - 0.5,1.0,(int)height/2 - z - 0.5,ball_radius);
