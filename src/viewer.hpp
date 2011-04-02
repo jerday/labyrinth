@@ -45,6 +45,7 @@ protected:
   void draw_floor(const int width, const int height);
   void draw_wall(double x, double y, double z, int length, char dir, Colour c);
   void draw_maze();
+  void draw_skybox();
 
 private:
   bool m_left_click_pressed;
@@ -66,6 +67,8 @@ private:
   Mode m_mode;
 
   Ball m_ball;
+
+  GLuint m_texture[6];
 };
 
 #endif

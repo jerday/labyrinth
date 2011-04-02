@@ -47,6 +47,83 @@ Viewer::~Viewer()
   // Nothing to do here right now.
 }
 
+/* Image type - contains height, width, and data */
+struct BMPImage {
+	unsigned long sizeX;
+	unsigned long sizeY;
+	char *data;
+};
+typedef struct BMPImage BMPImage;
+
+int ImageLoad(std::string filename, BMPImage *image)
+{
+    FILE *file;
+    unsigned long size;
+    unsigned long i;
+    unsigned short int planes;
+    unsigned short int bpp;
+    char temp;
+
+    if ((file = fopen(filename.c_str(), "rb"))==NULL)
+    {
+		printf("File Not Found : %s\n",filename.c_str());
+		return 0;
+    }
+
+    fseek(file, 18, SEEK_CUR);
+
+    if ((i = fread(&image->sizeX, 4, 1, file)) != 1) {
+		printf("Error reading width from %s.\n", filename.c_str());
+		return 0;
+    }
+
+    if ((i = fread(&image->sizeY, 4, 1, file)) != 1) {
+		printf("Error reading height from %s.\n", filename.c_str());
+		return 0;
+    }
+
+    size = image->sizeX * image->sizeY * 3;
+
+    if ((fread(&planes, 2, 1, file)) != 1) {
+    	printf("Error reading planes from %s.\n", filename.c_str());
+    	return 0;
+    }
+    if (planes != 1) {
+    	printf("Planes from %s is not 1: %u\n", filename.c_str(), planes);
+    	return 0;
+    }
+
+    if ((i = fread(&bpp, 2, 1, file)) != 1) {
+    	printf("Error reading bpp from %s.\n", filename.c_str());
+    	return 0;
+    }
+    if (bpp != 24) {
+    	printf("Bpp from %s is not 24: %u\n", filename.c_str(), bpp);
+    	return 0;
+    }
+
+    fseek(file, 24, SEEK_CUR);
+
+    image->data = (char *) malloc(size);
+    if (image->data == NULL) {
+    	printf("Error allocating memory for color-corrected image data");
+    	return 0;
+    }
+
+    if ((i = fread(image->data, size, 1, file)) != 1) {
+    	printf("Error reading image data from %s.\n", filename.c_str());
+    	return 0;
+    }
+
+    for (i=0;i<size;i+=3) { // reverse all of the colors. (bgr -> rgb)
+		temp = image->data[i];
+		image->data[i] = image->data[i+2];
+		image->data[i+2] = temp;
+    }
+
+    return 1;
+}
+
 void set_cursor(int x, int y)
 {
 	gdk_display_warp_pointer(gdk_display_get_default(), gdk_screen_get_default(), x, y);
@@ -145,6 +222,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	glRotated(m_rotate_y,0.0,1.0,0.0);
 
 	glTranslated(m_camera[0],m_camera[1],m_camera[2]);
+	draw_skybox();
 
 	// draw origin
 	draw_wall(0.0,5,0.0,1,'w',Colour(0,0,0));
@@ -153,6 +231,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	if(m_mode == GAME) {
 		m_ball.draw();
 	}
+
 	// We pushed a matrix on the PROJECTION stack earlier, we
 	// need to pop it.
 	glMatrixMode(GL_PROJECTION);
@@ -185,6 +264,40 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
 	// Reset to modelview matrix mode
 	glMatrixMode(GL_MODELVIEW);
 	gldrawable->gl_end();
+
+	// Load Texture Map
+    BMPImage *image[6];
+
+	std::string filenames[6];
+	filenames[0] = "../data/lostvalley_south.bmp";
+	filenames[1] = "../data/lostvalley_east.bmp";
+	filenames[2] = "../data/lostvalley_north.bmp";
+	filenames[3] = "../data/lostvalley_up.bmp";
+	filenames[4] = "../data/lostvalley_down.bmp";
+	filenames[5] = "../data/lostvalley_west.bmp";
+
+	for(int i = 0; i < 6; i++) {
+	    image[i] = (BMPImage *) malloc(sizeof(BMPImage));
+	    if (image[i] == NULL) {
+	    	printf("Error allocating space for image");
+	    	exit(0);
+	    }
+	    if (!ImageLoad(filenames[i], image[i])) {
+			std::cerr << "Error opening file: " << filenames[i] << std::endl;
+			exit(1);
+		} else {
+			// Create Texture
+			glGenTextures(1, &m_texture[i]);
+			glBindTexture(GL_TEXTURE_2D, m_texture[i]);   // 2d texture (x and y size)
+
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR); // scale linearly when image bigger than texture
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); // scale linearly when image smalled than texture
+
+			// 2d texture, level of detail 0 (normal), 3 components (red, green, blue), x size from image, y size from image,
+			// border 0 (normal), rgb color data, unsigned byte data, and finally the data itself.
+			glTexImage2D(GL_TEXTURE_2D, 0, 3, image[i]->sizeX, image[i]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, image[i]->data);
+		}
+	}
 	return true;
 }
 
@@ -243,7 +356,24 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 	}
 	std::cout << "Camera: (" << m_camera[0] << "," << m_camera[1] << "," << m_camera[2] << ")" << std::endl;
 	std::cout << "Rotate (" << m_rotate_x << "," << m_rotate_y << ")" << std::endl;
-
+	if(m_camera[0] < -90) {
+		m_camera[0] = -90;
+	}
+	if(m_camera[0] > 90) {
+		m_camera[0] = 90;
+	}
+	if(m_camera[1] < -90) {
+		m_camera[1] = -90;
+	}
+	if(m_camera[1] > 90) {
+		m_camera[1] = 90;
+	}
+	if(m_camera[2] < -90) {
+		m_camera[2] = -90;
+	}
+	if(m_camera[2] > 90) {
+		m_camera[2] = 90;
+	}
 	invalidate();
 	return true;
 }
@@ -313,9 +443,6 @@ void Viewer::draw_floor(const int width, const int height)
 	glPushMatrix();
 
 	glColor3d(1, 1, 1);
-	int tmpW = width/2;
-	int tmpH = height/2;
-	std::cout << "(" << tmpW << "," << tmpH << ")" << std::endl;
 
 	glTranslated(-width/2,-1,height/2);
     glScaled(width,1,height);
@@ -466,5 +593,90 @@ void Viewer::draw_maze()
 			}
 		}
 	}
+	glPopMatrix();
+}
+
+void Viewer::draw_skybox()
+{
+   // Store the current matrix
+	glPushMatrix();
+
+	// Reset and transform the matrix.
+	//glLoadIdentity();
+	//gluLookAt(
+	//	0,0,0,
+	//	m_camera[0],m_camera[1],m_camera[2],
+	//	0,1,0);
+	//glTranslated(-m_camera[0],-m_camera[1],-m_camera[2]);
+	glScaled(1000,1000,1000);
+	// Enable/Disable features
+	glPushAttrib(GL_ENABLE_BIT);
+	glEnable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_BLEND);
+
+	// Just in case we set all vertices to white.
+	glColor4f(1,1,1,1);
+
+	// Render the front quad
+
+	glBindTexture(GL_TEXTURE_2D, m_texture[2]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex3f(  0.5f, -0.5f, -0.5f );
+		glTexCoord2f(1, 0); glVertex3f( -0.5f, -0.5f, -0.5f );
+		glTexCoord2f(1, 1); glVertex3f( -0.5f,  0.5f, -0.5f );
+		glTexCoord2f(0, 1); glVertex3f(  0.5f,  0.5f, -0.5f );
+	glEnd();
+
+	// Render the left quad
+	glBindTexture(GL_TEXTURE_2D, m_texture[5]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex3f(  0.5f, -0.5f,  0.5f );
+		glTexCoord2f(1, 0); glVertex3f(  0.5f, -0.5f, -0.5f );
+		glTexCoord2f(1, 1); glVertex3f(  0.5f,  0.5f, -0.5f );
+		glTexCoord2f(0, 1); glVertex3f(  0.5f,  0.5f,  0.5f );
+	glEnd();
+
+	// Render the back quad
+	glBindTexture(GL_TEXTURE_2D, m_texture[0]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex3f( -0.5f, -0.5f,  0.5f );
+		glTexCoord2f(1, 0); glVertex3f(  0.5f, -0.5f,  0.5f );
+		glTexCoord2f(1, 1); glVertex3f(  0.5f,  0.5f,  0.5f );
+		glTexCoord2f(0, 1); glVertex3f( -0.5f,  0.5f,  0.5f );
+
+	glEnd();
+
+	// Render the right quad
+	glBindTexture(GL_TEXTURE_2D, m_texture[1]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex3f( -0.5f, -0.5f, -0.5f );
+		glTexCoord2f(1, 0); glVertex3f( -0.5f, -0.5f,  0.5f );
+		glTexCoord2f(1, 1); glVertex3f( -0.5f,  0.5f,  0.5f );
+		glTexCoord2f(0, 1); glVertex3f( -0.5f,  0.5f, -0.5f );
+	glEnd();
+
+	// Render the top quad
+	glBindTexture(GL_TEXTURE_2D, m_texture[3]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 1); glVertex3f( -0.5f,  0.5f, -0.5f );
+		glTexCoord2f(0, 0); glVertex3f( -0.5f,  0.5f,  0.5f );
+		glTexCoord2f(1, 0); glVertex3f(  0.5f,  0.5f,  0.5f );
+		glTexCoord2f(1, 1); glVertex3f(  0.5f,  0.5f, -0.5f );
+	glEnd();
+
+
+	// Render the bottom quad
+	glBindTexture(GL_TEXTURE_2D, m_texture[4]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex3f( -0.5f, -0.5f, -0.5f );
+		glTexCoord2f(0, 1); glVertex3f( -0.5f, -0.5f,  0.5f );
+		glTexCoord2f(1, 1); glVertex3f(  0.5f, -0.5f,  0.5f );
+		glTexCoord2f(1, 0); glVertex3f(  0.5f, -0.5f, -0.5f );
+	glEnd();
+
+	// Restore enable bits and matrix
+	glPopAttrib();
 	glPopMatrix();
 }
