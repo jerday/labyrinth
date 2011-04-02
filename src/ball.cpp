@@ -11,7 +11,7 @@ Ball::Ball(double x, double y, double z, double radius) {
 
 void Ball::draw() {
 	glPushMatrix();
-    glTranslated(m_location[0],m_location[2],-m_location[1]);
+    glTranslated(-m_location[0],m_location[1],-m_location[2]);
 
 	glColor3d(0.5, 0.5, 0.5);
 	GLUquadric* quad = gluNewQuadric();

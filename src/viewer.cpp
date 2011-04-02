@@ -147,7 +147,7 @@ void Viewer::set_mode(Mode m) {
 		m_mouse_x = 0;
 		m_mouse_y = 0;
 	} else {
-		m_camera = Point3D(0,-40,0);//m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
+		m_camera = Point3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
 		m_rotate_x = 90;
 		m_rotate_y = 0;
 		m_mouse_x = 0;
@@ -367,7 +367,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[1] += sin(xrotrad);
 			m_camera[2] += cos(yrotrad)*cos(xrotrad);
 		} else if(m_mode == GAME) {
-			m_tilt_x += 1;
+			m_tilt_x -= 1;
 		}
 		break;
 	case GDK_S:
@@ -380,7 +380,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[1] -= sin(xrotrad);
 			m_camera[2] -= cos(yrotrad)*cos(xrotrad);
 		} else if(m_mode == GAME) {
-			m_tilt_x -= 1;
+			m_tilt_x += 1;
 		}
 		break;
 	case GDK_A:
@@ -663,13 +663,14 @@ void Viewer::draw_maze()
 	draw_wall( width/2+1, 0,  height/2+1, height+2,'z',Colour(0,0,1));
 
 	for(int x = 0; x < m_maze->getWidth(); x++) {
-		for(int y = 0; y < m_maze->getHeight(); y++) {
-			char id = (*m_maze)(x,y);
+		for(int z = 0; z < m_maze->getHeight(); z++) {
+			char id = (*m_maze)(x,z);
 			if(id == 'w') {
-				draw_wall(-width/2 + x,0,-height/2 + y,1,'x', Colour(1,0,0));
+				draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
 			}
 			if(id == 's') {
-				m_ball = Ball((int)-width/2 + x,(int)-height/2 + y,1.0,0.5);
+				std::cout << "(" << x << "," << z << ")" << std::endl;
+				m_ball = Ball((int)width/2 + x,1.0,(int)height/2 - z,0.5);
 			}
 		}
 	}
