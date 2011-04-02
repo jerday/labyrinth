@@ -87,7 +87,7 @@ private:
   Ball m_ball;
 
   GLuint m_texture[6];
-  GLuint m_wall_textures[1];
+  GLuint m_wall_textures[2];
 };
 
 #endif

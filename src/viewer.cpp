@@ -147,7 +147,7 @@ void Viewer::set_mode(Mode m) {
 		m_mouse_x = 0;
 		m_mouse_y = 0;
 	} else {
-		m_camera = Point3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
+		m_camera = Point3D(0,-40,0);//m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
 		m_rotate_x = 90;
 		m_rotate_y = 0;
 		m_mouse_x = 0;
@@ -220,7 +220,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	glShadeModel ( GL_SMOOTH );
 
 	if(m_mode == GAME) {
-		m_camera = Point3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
+		m_camera = Point3D(m_ball.m_location[0],m_ball.m_location[1]-40,m_ball.m_location[2]);
 	}
 
 	// for flying mode, rotate y based on mouse x
@@ -343,6 +343,14 @@ void Viewer::configure_textures() {
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3,img->GetWidth(), img->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, img->GetImg());
 
+	filename = "../data/tga/floortiles.tga";
+	img = new TGAImg();
+	img->Load(filename);
+	glGenTextures(1, &m_wall_textures[1]);
+	glBindTexture(GL_TEXTURE_2D, m_wall_textures[1]);   // 2d texture (x and y size)
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3,img->GetWidth(), img->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, img->GetImg());
 
 }
 bool Viewer::on_key_press_event(GdkEventKey* event)
@@ -491,51 +499,59 @@ void Viewer::draw_floor(const int width, const int height)
 	glTranslated(-width/2,-1,height/2);
     glScaled(width,1,height);
 
+	glBindTexture(GL_TEXTURE_2D, m_wall_textures[1]);
 	glBegin(GL_QUADS);
-
-	// top
 	glNormal3d(0.0,1.001,0.0);
-	glVertex3d(1.001, 1.001,-1.001); // top right
-	glVertex3d(0.0, 1.001,-1.001); // top left
-	glVertex3d(0.0, 1.001, 0.0); // bottom left
-	glVertex3d(1.001, 1.001, 0.0); // bottom right
+		glTexCoord2f(15, 15); glVertex3d(1.001, 1.001,-1.001); // top right
+		glTexCoord2f(0, 15); glVertex3d(0.0, 1.001,-1.001); // top left
+		glTexCoord2f(0, 0); glVertex3d(0.0, 1.001, 0.0); // bottom left
+		glTexCoord2f(15, 0); glVertex3d(1.001, 1.001, 0.0); // bottom right
+	glEnd();
 
 	// bottom
-	glNormal3d(0.0,-1.001,0.0);
-	glVertex3d(1.001,0.0,-1.001); // top right
-	glVertex3d(0.0,0.0,-1.001); // top left
-	glVertex3d(0.0,0.0,0.0); // bottom left
-	glVertex3d(1.001,0.0,0.0); // bottom right
+	glBegin(GL_QUADS);
+		glNormal3d(0.0,-1.001,0.0);
+		glTexCoord2f(1, 1); glVertex3d(1.001,0.0,-1.001); // top right
+		glTexCoord2f(0, 1); glVertex3d(0.0,0.0,-1.001); // top left
+		glTexCoord2f(0, 0); glVertex3d(0.0,0.0,0.0); // bottom left
+		glTexCoord2f(1, 0); glVertex3d(1.001,0.0,0.0); // bottom right
+	glEnd();
 
 	// front
-	glNormal3f(0.0,0.0,1.001);
-	glVertex3d(1.001,1.001,0.0); // top right
-	glVertex3d(0.0,1.001,0.0); // top left
-	glVertex3d(0.0,0.0,0.0); // bottom left
-	glVertex3d(1.001,0.0,0.0); // bottom right
+	glBegin(GL_QUADS);
+		glNormal3f(0.0,0.0,1.001);
+		glTexCoord2f(1, 1); glVertex3d(1.001,1.001,0.0); // top right
+		glTexCoord2f(0, 1); glVertex3d(0.0,1.001,0.0); // top left
+		glTexCoord2f(0, 0); glVertex3d(0.0,0.0,0.0); // bottom left
+		glTexCoord2f(1, 0); glVertex3d(1.001,0.0,0.0); // bottom right
+	glEnd();
 
 	// back
-	glNormal3f(0.0,0.0,-1.0);
-	glVertex3d(0.0,0.0,-1.001); // bottom left
-	glVertex3d(1.001,0.0,-1.001); // bottom right
-	glVertex3d(1.001,1.001,-1.001); // top right
-	glVertex3d(0.0,1.001,-1.001); // top left
+	glBegin(GL_QUADS);
+		glNormal3f(0.0,0.0,-1.0);
+		glTexCoord2f(1, 1); glVertex3d(0.0,0.0,-1.001); // bottom left
+		glTexCoord2f(0, 1); glVertex3d(1.001,0.0,-1.001); // bottom right
+		glTexCoord2f(0, 0); glVertex3d(1.001,1.001,-1.001); // top right
+		glTexCoord2f(1, 0); glVertex3d(0.0,1.001,-1.001); // top left
+	glEnd();
 
 	// left
-	glNormal3f(-1.0,0.0,0.0);
-	glVertex3d(0.0,1.001,-1.001); // top right
-	glVertex3d(0.0,1.001,0.0); // top left
-	glVertex3d(0.0,0.0,0.0); // bottom left
-	glVertex3d(0.0,0.0,-1.001); // bottom right
+	glBegin(GL_QUADS);
+		glNormal3f(-1.0,0.0,0.0);
+		glTexCoord2f(1, 1); glVertex3d(0.0,1.001,-1.001); // top right
+		glTexCoord2f(0, 1); glVertex3d(0.0,1.001,0.0); // top left
+		glTexCoord2f(0, 0); glVertex3d(0.0,0.0,0.0); // bottom left
+		glTexCoord2f(1, 0); glVertex3d(0.0,0.0,-1.001); // bottom right
+	glEnd();
 
 	// right
-	glNormal3f(1.0,0.0,0.0);
-	glVertex3d(1.001,1.001,0.0); // top right
-	glVertex3d(1.001,1.001,-1.001); // top left
-	glVertex3d(1.001,0.0,-1.001); // bottom left
-	glVertex3d(1.001,0.0,0.0); // bottom right
-
-    glEnd();
+	glBegin(GL_QUADS);
+		glNormal3f(1.0,0.0,0.0);
+		glTexCoord2f(1, 1); glVertex3d(1.001,1.001,0.0); // top right
+		glTexCoord2f(0, 1); glVertex3d(1.001,1.001,-1.001); // top left
+		glTexCoord2f(0, 0); glVertex3d(1.001,0.0,-1.001); // bottom left
+		glTexCoord2f(1, 0); glVertex3d(1.001,0.0,0.0); // bottom right
+	glEnd();
 
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
@@ -548,13 +564,13 @@ void Viewer::draw_wall(double x, double y, double z, int length, char dir, Colou
 
 	glColor3d(1,1,1); //c.R(),c.G(),c.B());
 	glTranslated(x,y,z);
-	//if(dir == 'x') {
-	//	glScaled(length,5.0,1.0);
-	//}
+	if(dir == 'x') {
+		glScaled(length,5.0,1.0);
+	}
 
-	//if(dir == 'z') {
-	//	glScaled(1.0,5.0,length);
-	//}
+	if(dir == 'z') {
+		glScaled(1.0,5.0,length);
+	}
 	glPushAttrib(GL_ENABLE_BIT);
 	glEnable(GL_TEXTURE_2D);
 	glShadeModel(GL_SMOOTH);						// Enable Smooth Shading
@@ -565,8 +581,8 @@ void Viewer::draw_wall(double x, double y, double z, int length, char dir, Colou
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);			// Really Nice Perspective Calculations
 	//glDisable(GL_BLEND);
 	// top
-	for(int i = 0; i < 5; i++) {
-		glTranslated(0,1,0);
+	//for(int i = 0; i < 5; i++) {
+	//	glTranslated(0,1,0);
 		glBindTexture(GL_TEXTURE_2D, m_wall_textures[0]);
 		glBegin(GL_QUADS);
 		glNormal3d(0.0,1.001,0.0);
@@ -588,8 +604,8 @@ void Viewer::draw_wall(double x, double y, double z, int length, char dir, Colou
 		// front
 		glBegin(GL_QUADS);
 			glNormal3f(0.0,0.0,1.001);
-			glTexCoord2f(1, 1); glVertex3d(1.001,1.001,0.0); // top right
-			glTexCoord2f(0, 1); glVertex3d(0.0,1.001,0.0); // top left
+			glTexCoord2f(1, 5); glVertex3d(1.001,1.001,0.0); // top right
+			glTexCoord2f(0, 5); glVertex3d(0.0,1.001,0.0); // top left
 			glTexCoord2f(0, 0); glVertex3d(0.0,0.0,0.0); // bottom left
 			glTexCoord2f(1, 0); glVertex3d(1.001,0.0,0.0); // bottom right
 		glEnd();
@@ -597,8 +613,8 @@ void Viewer::draw_wall(double x, double y, double z, int length, char dir, Colou
 		// back
 		glBegin(GL_QUADS);
 			glNormal3f(0.0,0.0,-1.0);
-			glTexCoord2f(1, 1); glVertex3d(0.0,0.0,-1.001); // bottom left
-			glTexCoord2f(0, 1); glVertex3d(1.001,0.0,-1.001); // bottom right
+			glTexCoord2f(1, 5); glVertex3d(0.0,0.0,-1.001); // bottom left
+			glTexCoord2f(0, 5); glVertex3d(1.001,0.0,-1.001); // bottom right
 			glTexCoord2f(0, 0); glVertex3d(1.001,1.001,-1.001); // top right
 			glTexCoord2f(1, 0); glVertex3d(0.0,1.001,-1.001); // top left
 		glEnd();
@@ -606,8 +622,8 @@ void Viewer::draw_wall(double x, double y, double z, int length, char dir, Colou
 		// left
 		glBegin(GL_QUADS);
 			glNormal3f(-1.0,0.0,0.0);
-			glTexCoord2f(1, 1); glVertex3d(0.0,1.001,-1.001); // top right
-			glTexCoord2f(0, 1); glVertex3d(0.0,1.001,0.0); // top left
+			glTexCoord2f(1, 5); glVertex3d(0.0,1.001,-1.001); // top right
+			glTexCoord2f(0, 5); glVertex3d(0.0,1.001,0.0); // top left
 			glTexCoord2f(0, 0); glVertex3d(0.0,0.0,0.0); // bottom left
 			glTexCoord2f(1, 0); glVertex3d(0.0,0.0,-1.001); // bottom right
 		glEnd();
@@ -615,12 +631,12 @@ void Viewer::draw_wall(double x, double y, double z, int length, char dir, Colou
 		// right
 		glBegin(GL_QUADS);
 			glNormal3f(1.0,0.0,0.0);
-			glTexCoord2f(1, 1); glVertex3d(1.001,1.001,0.0); // top right
-			glTexCoord2f(0, 1); glVertex3d(1.001,1.001,-1.001); // top left
+			glTexCoord2f(1, 5); glVertex3d(1.001,1.001,0.0); // top right
+			glTexCoord2f(0, 5); glVertex3d(1.001,1.001,-1.001); // top left
 			glTexCoord2f(0, 0); glVertex3d(1.001,0.0,-1.001); // bottom left
 			glTexCoord2f(1, 0); glVertex3d(1.001,0.0,0.0); // bottom right
 		glEnd();
-	}
+	//}
 
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
@@ -638,7 +654,7 @@ void Viewer::draw_maze()
 	int width = m_maze->getWidth();
 	int height = m_maze->getHeight();
 	// floor
-	//draw_floor(width+2,height+2);
+	draw_floor(width+2,height+2);
 
 	// outside walls
 	//draw_wall(-width/2-1, 0,  height/2+1, width+2,'x',Colour(0,0,1));
