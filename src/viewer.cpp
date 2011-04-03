@@ -41,6 +41,7 @@ Viewer::Viewer()
   m_tilt_x = 0;
   m_tilt_z = 0;
   m_ball_set = false;
+  ball_radius = 0.4;
   m_skybox = ALPINE;
 }
 
@@ -612,7 +613,7 @@ void Viewer::draw_maze()
 	
 	int width = m_maze->getWidth();
 	int height = m_maze->getHeight();
-	double ball_radius = 0.4;
+
 	// floor
 	draw_floor(width+2,height+2);
 
@@ -629,7 +630,7 @@ void Viewer::draw_maze()
 				draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
 			}
 			if(id == 's' && !m_ball_set) {
-				m_ball = Ball((int)width/2 + x - 0.5,1.0,(int)height/2 - z - 0.5,ball_radius);
+				m_ball = Ball((int)width/2 + x - 0.5,0.4,(int)height/2 - z - 0.5,ball_radius);
 				m_ball_set = true;
 			}
 		}
@@ -771,7 +772,7 @@ void Viewer::draw_all() {
 	glShadeModel ( GL_SMOOTH );
 
 	if(m_mode == GAME) {
-		double balldist = 4;
+		double balldist = 8;
 		double yrotrad = (m_rotate_y / 180) * 3.141592654;
 		double xrotrad = (m_rotate_x / 180) * 3.141592654;
 		double hball = balldist*sin(xrotrad);
@@ -819,11 +820,13 @@ bool Viewer::do_physics() {
 		double gforcez_h = gforcez * cos(xtiltrad);
 
 		double gforcey = gforcex*sin(ztiltrad) + gforcez*sin(-xtiltrad);
+		double netforcey = 0;
+		//double floor_normal_v = max(g*cos(ztiltrad),g*cos(xtiltrad))*min(cos(ztiltrad),cos(xtiltrad));
 
 		double delta_t = time_refresh / 1000;
 
 		m_ball.m_velocity = Point3D(m_ball.m_velocity[0] + gforcex_h * delta_t, 
-				m_ball.m_velocity[1] + gforcey*delta_t, 
+				m_ball.m_velocity[1] + netforcey*delta_t, 
 				m_ball.m_velocity[2] + gforcez_h*delta_t);
 		m_ball.m_location = Point3D(m_ball.m_location[0] + m_ball.m_velocity[0]*delta_t,
 				m_ball.m_location[1] - m_ball.m_velocity[1]*delta_t, 

@@ -80,6 +80,7 @@ private:
   double m_rotate_x;
   double m_tilt_x;
   double m_tilt_z;
+  double ball_radius;
   static const double g = 9.81;
   static const double time_refresh = 10;
   bool m_ball_set;
