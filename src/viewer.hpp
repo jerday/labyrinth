@@ -61,8 +61,10 @@ protected:
   void draw_wall(double x, double y, double z, int length, char dir, Colour c);
   void draw_maze();
   void draw_skybox();
+  void draw_all();
   void configure_skybox();
   void configure_textures();
+  bool do_physics();
 
 private:
   bool m_left_click_pressed;
@@ -88,6 +90,7 @@ private:
 
   GLuint m_texture[6];
   GLuint m_wall_textures[2];
+  sigc::connection m_conn;
 };
 
 #endif

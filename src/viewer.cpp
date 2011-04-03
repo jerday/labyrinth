@@ -184,78 +184,7 @@ void Viewer::on_realize()
 
 bool Viewer::on_expose_event(GdkEventExpose* event)
 {
-	(void) event;
-	Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
-	glDrawBuffer(GL_BACK);
-	//set_cursor(m_width/2,m_height/2);
-
-	if (!gldrawable->gl_begin(get_gl_context()))
-		return false;
-
-	// Clear the screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Modify the current projection matrix so that we move the
-	// camera away from the origin.  We'll draw the game at the
-	// origin, and we need to back up to see it.
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glEnable(GL_LINE_SMOOTH);
-	// Set up lighting
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHT2);
-	glEnable(GL_LIGHT3);
-
-	////float global_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
-	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
-	//float lightColor0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-	//glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor0);
-	glEnable(GL_NORMALIZE);
-	glEnable(GL_COLOR_MATERIAL);
-	glShadeModel ( GL_SMOOTH );
-
-	if(m_mode == GAME) {
-		double balldist = 4;
-		double yrotrad = (m_rotate_y / 180) * 3.141592654;
-		double xrotrad = (m_rotate_x / 180) * 3.141592654;
-		double hball = balldist*sin(xrotrad);
-		double xball = balldist*cos(xrotrad)*sin(yrotrad);
-		double zball = balldist*cos(xrotrad)*cos(yrotrad);
-	
-		m_camera = Point3D(m_ball.m_location[0]+xball,
-				m_ball.m_location[1]+hball,m_ball.m_location[2]-zball);
-	}
-	std::cout << "camera: " << m_camera << std::endl;
-
-	// for flying mode, rotate y based on mouse x
-	glRotated(m_rotate_x,1.0,0.0,0.0);
-	glRotated(m_rotate_y,0.0,1.0,0.0);
-
-	glTranslated(m_camera[0],-m_camera[1],m_camera[2]);
-	draw_skybox();
-
-	// draw origin
-	draw_wall(0.0,5,0.0,1,'w',Colour(0,0,0));
-	draw_maze();
-
-	if(m_mode == GAME) {
-		m_ball.draw();
-	}
-
-	// We pushed a matrix on the PROJECTION stack earlier, we
-	// need to pop it.
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-
-	// Swap the contents of the front and back buffers so we see what we
-	// just drew. This should only be done if double buffering is enabled.
-	gldrawable->swap_buffers();
-	gldrawable->gl_end();
+	draw_all();
 
 	return true;
 }
@@ -281,6 +210,11 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
 	gldrawable->gl_end();
 	configure_skybox();
 	configure_textures();
+
+	  m_conn.disconnect();
+	  m_conn = Glib::signal_timeout().connect(sigc::mem_fun(*this, &Viewer::do_physics), 10);
+
+
 	return true;
 
 
@@ -373,7 +307,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			yrotrad = (m_rotate_y / 180) * 3.141592654;
 			xrotrad = (m_rotate_x / 180) * 3.141592654;
 			m_camera[0] -= sin(yrotrad);
-			m_camera[1] += sin(xrotrad);
+			m_camera[1] -= sin(xrotrad);
 			m_camera[2] += cos(yrotrad)*cos(xrotrad);
 		} else if(m_mode == GAME) {
 			m_tilt_x -= 1;
@@ -386,7 +320,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			yrotrad = (m_rotate_y / 180) * 3.141592654;
 			xrotrad = (m_rotate_x / 180) * 3.141592654;
 			m_camera[0] += sin(yrotrad);
-			m_camera[1] -= sin(xrotrad);
+			m_camera[1] += sin(xrotrad);
 			m_camera[2] -= cos(yrotrad)*cos(xrotrad);
 		} else if(m_mode == GAME) {
 			m_tilt_x += 1;
@@ -770,4 +704,83 @@ void Viewer::draw_skybox()
 	// Restore enable bits and matrix
 	glPopAttrib();
 	glPopMatrix();
+}
+
+void Viewer::draw_all() {
+	Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
+	glDrawBuffer(GL_BACK);
+	//set_cursor(m_width/2,m_height/2);
+
+	if (!gldrawable->gl_begin(get_gl_context()))
+		return;
+
+	// Clear the screen
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Modify the current projection matrix so that we move the
+	// camera away from the origin.  We'll draw the game at the
+	// origin, and we need to back up to see it.
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glEnable(GL_LINE_SMOOTH);
+	// Set up lighting
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHT2);
+	glEnable(GL_LIGHT3);
+
+	////float global_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
+	//float lightColor0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	//glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor0);
+	glEnable(GL_NORMALIZE);
+	glEnable(GL_COLOR_MATERIAL);
+	glShadeModel ( GL_SMOOTH );
+
+	if(m_mode == GAME) {
+		double balldist = 4;
+		double yrotrad = (m_rotate_y / 180) * 3.141592654;
+		double xrotrad = (m_rotate_x / 180) * 3.141592654;
+		double hball = balldist*sin(xrotrad);
+		double xball = balldist*cos(xrotrad)*sin(yrotrad);
+		double zball = balldist*cos(xrotrad)*cos(yrotrad);
+
+		m_camera = Point3D(m_ball.m_location[0]+xball,
+				m_ball.m_location[1]+hball,m_ball.m_location[2]-zball);
+	}
+	std::cout << "camera: " << m_camera << std::endl;
+
+	// for flying mode, rotate y based on mouse x
+	glRotated(m_rotate_x,1.0,0.0,0.0);
+	glRotated(m_rotate_y,0.0,1.0,0.0);
+
+	glTranslated(m_camera[0],-m_camera[1],m_camera[2]);
+	draw_skybox();
+
+	// draw origin
+	draw_wall(0.0,5,0.0,1,'w',Colour(0,0,0));
+	draw_maze();
+
+	if(m_mode == GAME) {
+		m_ball.draw();
+	}
+
+	// We pushed a matrix on the PROJECTION stack earlier, we
+	// need to pop it.
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+
+	// Swap the contents of the front and back buffers so we see what we
+	// just drew. This should only be done if double buffering is enabled.
+	gldrawable->swap_buffers();
+	gldrawable->gl_end();
+}
+
+bool Viewer::do_physics() {
+	std::cout << "DO PHYSICS YO" << std::endl;
+	return true;
 }
