@@ -323,7 +323,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[1] -= sin(xrotrad);
 			m_camera[2] += cos(yrotrad)*cos(xrotrad);
 		} else if(m_mode == GAME) {
-			m_tilt_x -= 1;
+			m_tilt_x -= 0.4;
 		}
 		break;
 	case GDK_S:
@@ -336,7 +336,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[1] += sin(xrotrad);
 			m_camera[2] -= cos(yrotrad)*cos(xrotrad);
 		} else if(m_mode == GAME) {
-			m_tilt_x += 1;
+			m_tilt_x += 0.4;
 		}
 		break;
 	case GDK_A:
@@ -347,7 +347,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[0] += cos(yrotrad);
 			m_camera[2] += sin(yrotrad);
 		} else if(m_mode == GAME) {
-			m_tilt_z += 1;
+			m_tilt_z += 0.4;
 		}
 		break;
 	case GDK_D:
@@ -358,7 +358,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[0] -= cos(yrotrad);
 			m_camera[2] -= sin(yrotrad);
 		} else if(m_mode == GAME) {
-			m_tilt_z -= 1;
+			m_tilt_z -= 0.4;
 		}
 		break;
 	}
@@ -627,7 +627,7 @@ void Viewer::draw_maze()
 		for(int z = 0; z < m_maze->getHeight(); z++) {
 			char id = (*m_maze)(x,z);
 			if(id == 'w') {
-				draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
+				//draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
 			}
 			if(id == 's' && !m_ball_set) {
 				m_ball = Ball((int)width/2 + x - 0.5,3,(int)height/2 - z - 0.5,ball_radius);
@@ -834,7 +834,7 @@ bool Viewer::do_physics() {
 		std::cout << "floor-ball dist = " << floor_ball_dist << std::endl;
 
 		/*
-		double bad_angle = std::sin(cos(xtiltrad),cos(ztiltrad));
+		double bad_angle = std::min(cos(xtiltrad),cos(ztiltrad));
 		if(m_ball.m_location[1] - ball_radius/bad_angle > floor_y) {
 			m_ball.m_location[1] -= m_ball.m_velocity[1]*delta_t - 0.5*g*delta_t*delta_t;
 			m_ball.m_velocity[1] = m_ball.m_velocity[1] + g*delta_t;
@@ -851,13 +851,13 @@ bool Viewer::do_physics() {
 		}
 		*/
 
-		if(floor_ball_dist > 0) {
+		if(floor_ball_dist > 0.0) {
 			m_ball.m_location[1] -= m_ball.m_velocity[1]*delta_t - 0.5*g*delta_t*delta_t;
 			m_ball.m_velocity[1] = m_ball.m_velocity[1] + g*delta_t;
 		} else {
-			m_ball.m_location[1] = 0.4;
-			if (m_ball.m_location[1] > (ball_radius-0.01) && 
-				m_ball.m_location[1] < (ball_radius+0.01) && abs(m_ball.m_velocity[1]) < 0.1) {
+			double temp_fbd = is_ball_below_floor();
+			m_ball.m_location[1] = floor_y + ball_radius; //what's the actual?
+			if ( floor_ball_dist < 0.05 && abs(m_ball.m_velocity[1]) < 0.1) {
 				m_ball.m_velocity[1] = 0;
 			} else {
 				m_ball.m_velocity[1] = -m_ball.m_velocity[1] * 0.1;
@@ -865,12 +865,13 @@ bool Viewer::do_physics() {
 			} 
 			
 		}
+		
 		/*
 		if (m_ball.m_velocity[0] != 0) {
-			m_ball.m_angle[2] = m_ball.m_velocity[0] * 150;
+			m_ball.m_angle[2] = m_ball.m_velocity[0] * 180;
 		}
 		if (m_ball.m_velocity[2] != 0) {
-			m_ball.m_angle[0] = -m_ball.m_velocity[2] * 150;
+			m_ball.m_angle[0] = -m_ball.m_velocity[2] * 180;
 		}
 		m_ball.m_velocity = Point3D(m_ball.m_velocity[0] + gforcex_h * delta_t, 
 				m_ball.m_velocity[1], 
@@ -878,7 +879,11 @@ bool Viewer::do_physics() {
 		m_ball.m_location = Point3D(m_ball.m_location[0] + m_ball.m_velocity[0]*delta_t,
 				m_ball.m_location[1], 
 				m_ball.m_location[2] + m_ball.m_velocity[2]*delta_t);
+		
+		m_ball.m_velocity[0] *= 0.9999;
+		m_ball.m_velocity[2] *= 0.9999;
 		*/
+
 		std::cout << "ball velocity: " << m_ball.m_velocity << std::endl;
 		std::cout << "ball location: " << m_ball.m_location << std::endl;
 		std::cout << "tilt x = " << m_tilt_x << " ; tilt z = " << m_tilt_z << std::endl;
@@ -931,7 +936,7 @@ double Viewer::is_ball_below_floor() {
 			    + p3[0] * (p1[1] * p2[2] - p2[1] * p1[2]);
 	std::cout << "A:" << A << "B:" << B << "C:" << C << std::endl;
 	m_floor_normal = Vector3D(A,B,C);
-	m_floor_normal = rotateX * m_floor_normal; m_floor_normal.normalize();
+	m_floor_normal = rotateZ * rotateX * m_floor_normal; m_floor_normal.normalize();
 	Vector3D sphereCentre = Vector3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
 	double dist = m_floor_normal.dot(sphereCentre);
 	//if(dist-m_ball.m_radius > 0) return true;
