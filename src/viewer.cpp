@@ -634,8 +634,8 @@ void Viewer::draw_maze()
 			}
 		}
 	}
-	draw_spire();
 	glPopMatrix();
+	//draw_spire();
 }
 
 void Viewer::draw_skybox()
@@ -831,11 +831,31 @@ bool Viewer::do_physics() {
 		std::cout << "ball velocity: " << m_ball.m_velocity << std::endl;
 		std::cout << "ball location: " << m_ball.m_location << std::endl;
 		std::cout << "tilt x = " << m_tilt_x << " ; tilt z = " << m_tilt_z << std::endl;
+		is_ball_on_floor();
 		invalidate();
 	}
 	return true;
 }
 
+bool Viewer::is_ball_on_floor() {
+	// Three points in the floor 'plane'
+	Point3D p1 = Point3D(0,0,0);
+	Point3D p2 = Point3D(-m_width/2,0,m_height/2);
+	Point3D p3 = Point3D(m_width/2,0,-m_height/2);
+
+	double A = p1[1] * (p2[2] - p3[2]) + p2[1] * (p3[2] - p1[2]) + p3[1] * (p1[2] - p2[2]);
+	double B = p1[2] * (p2[0] - p3[0]) + p2[2] * (p3[0] - p1[0]) + p3[2] * (p1[0] - p2[0]);
+	double C = p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1]);
+	double negD = p1[0] * (p2[1] * p3[2] - p3[1] * p2[2])
+			    + p2[0] * (p3[1] * p1[2] - p1[1] * p3[2])
+			    + p3[0] * (p1[1] * p2[2] - p2[1] * p1[2]);
+
+	Vector3D normal = Vector3D(A,B,C);
+	Vector3D sphereCentre = Vector3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
+	double dist = normal.dot(sphereCentre);
+	std::cout << "dist: " << dist << std::endl;
+	return true;
+}
 
 
 
