@@ -834,17 +834,48 @@ bool Viewer::do_physics() {
 		std::cout << "ball velocity: " << m_ball.m_velocity << std::endl;
 		std::cout << "ball location: " << m_ball.m_location << std::endl;
 		std::cout << "tilt x = " << m_tilt_x << " ; tilt z = " << m_tilt_z << std::endl;
-		is_ball_on_floor();
+		if(is_ball_below_floor()) {
+			std::cout << "ball below floor" << std::endl;
+		}
 		invalidate();
 	}
 	return true;
 }
+Matrix4x4 getRotate(char axis, double angle)
+{
+	Vector4D r1,r2,r3,r4;
+	double rad = (angle/180.0) * 3.14159265;
+	switch(axis) {
+		case 'x':
+			r1 = Vector4D(1,0,0,0);
+			r2 = Vector4D(0,cos(rad),-sin(rad),0);
+			r3 = Vector4D(0,sin(rad),cos(rad),0);
+			break;
+		case 'y':
+			r1 = Vector4D(cos(rad),0,sin(rad),0);
+			r2 = Vector4D(0,1,0,0);
+			r3 = Vector4D(-sin(rad),0,cos(rad),0);
+			break;
+		case 'z':
+			r1 = Vector4D(cos(rad),-sin(rad),0,0);
+			r2 = Vector4D(sin(rad),cos(rad),0,0);
+			r3 = Vector4D(0,0,1,0);
+			break;
+	}
+	r4 = Vector4D(0,0,0,1);
+    return Matrix4x4(r1,r2,r3,r4);
+}
 
-bool Viewer::is_ball_on_floor() {
+double Viewer::is_ball_below_floor() {
 	// Three points in the floor 'plane'
-	Point3D p1 = Point3D(0,0,0);
-	Point3D p2 = Point3D(-m_width/2,0,m_height/2);
-	Point3D p3 = Point3D(m_width/2,0,-m_height/2);
+	int width = m_maze->getWidth() + 2;
+	int height = m_maze->getHeight() + 2;
+	Matrix4x4 rotateX = getRotate('x',m_tilt_x);
+	Matrix4x4 rotateZ = getRotate('z',m_tilt_z);
+	Point3D p1 = rotateZ * rotateX * Point3D(0,0,0);
+	Point3D p2 = rotateZ * rotateX * Point3D(-width/2,0,0);
+	Point3D p3 = rotateZ * rotateX * Point3D(0,0,height/2);
+
 
 	double A = p1[1] * (p2[2] - p3[2]) + p2[1] * (p3[2] - p1[2]) + p3[1] * (p1[2] - p2[2]);
 	double B = p1[2] * (p2[0] - p3[0]) + p2[2] * (p3[0] - p1[0]) + p3[2] * (p1[0] - p2[0]);
@@ -852,12 +883,14 @@ bool Viewer::is_ball_on_floor() {
 	double negD = p1[0] * (p2[1] * p3[2] - p3[1] * p2[2])
 			    + p2[0] * (p3[1] * p1[2] - p1[1] * p3[2])
 			    + p3[0] * (p1[1] * p2[2] - p2[1] * p1[2]);
+	std::cout << "A:" << A << "B:" << B << "C:" << C << std::endl;
+	m_floor_normal = Vector3D(A,B,C); normal.normalize();
 
-	Vector3D normal = Vector3D(A,B,C);
 	Vector3D sphereCentre = Vector3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
-	double dist = normal.dot(sphereCentre);
-	std::cout << "dist: " << dist << std::endl;
-	return true;
+	double dist = normal.dot(sphereCentre) + negD;
+	//if(dist-m_ball.m_radius > 0) return true;
+	return dist-m_ball.m_radius;
+	//return false;
 }
 
 
