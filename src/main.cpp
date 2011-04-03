@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 
 	if(window.parse_maze(filename)) {
 		// And run the application
-		window.fullscreen();
+		//window.fullscreen();
 		Gtk::Main::run(window);
 	}
 }
