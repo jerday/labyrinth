@@ -211,10 +211,12 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
 	configure_skybox();
 	configure_textures();
 
-	  m_conn.disconnect();
-	  m_conn = Glib::signal_timeout().connect(sigc::mem_fun(*this, &Viewer::do_physics), 10);
+	m_conn.disconnect();
+	m_conn = Glib::signal_timeout().connect(sigc::mem_fun(*this, &Viewer::do_physics), 10);
+	m_quadratic=gluNewQuadric();                  // Create A Pointer To The Quadric Object ( NEW )
 
-
+	gluQuadricNormals(m_quadratic, GLU_SMOOTH);   // Create Smooth Normals
+	gluQuadricTexture(m_quadratic, GL_TRUE);      // Create Texture Coords ( NEW )
 	return true;
 
 
@@ -291,6 +293,15 @@ void Viewer::configure_textures() {
 	img->Load(filename);
 	glGenTextures(1, &m_wall_textures[1]);
 	glBindTexture(GL_TEXTURE_2D, m_wall_textures[1]);   // 2d texture (x and y size)
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3,img->GetWidth(), img->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, img->GetImg());
+
+	filename = "../data/tga/base_plaster.tga";
+	img = new TGAImg();
+	img->Load(filename);
+	glGenTextures(1, &m_wall_textures[2]);
+	glBindTexture(GL_TEXTURE_2D, m_wall_textures[2]);   // 2d texture (x and y size)
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3,img->GetWidth(), img->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, img->GetImg());
@@ -618,6 +629,7 @@ void Viewer::draw_maze()
 			}
 		}
 	}
+	draw_spire();
 	glPopMatrix();
 }
 
@@ -691,7 +703,6 @@ void Viewer::draw_skybox()
 		glTexCoord2f(1, 1); glVertex3f(  0.5f,  0.5f, -0.5f );
 	glEnd();
 
-
 	// Render the bottom quad
 	glBindTexture(GL_TEXTURE_2D, m_texture[4]);
 	glBegin(GL_QUADS);
@@ -706,10 +717,23 @@ void Viewer::draw_skybox()
 	glPopMatrix();
 }
 
+void Viewer::draw_spire()
+{
+	glPushMatrix();
+	glEnable(GL_TEXTURE_GEN_S);
+	glEnable(GL_TEXTURE_GEN_T);
+	glRotatef(90,1.0,0.0,0.0);
+	glScalef(m_width/300,m_width/300,500);
+    glBindTexture(GL_TEXTURE_2D, m_wall_textures[2]);
+    gluCylinder(m_quadratic,1,1,3,32,32);
+    glPopMatrix();
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+}
+
 void Viewer::draw_all() {
 	Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
 	glDrawBuffer(GL_BACK);
-	//set_cursor(m_width/2,m_height/2);
 
 	if (!gldrawable->gl_begin(get_gl_context()))
 		return;

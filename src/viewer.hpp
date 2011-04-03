@@ -3,6 +3,7 @@
 
 #include <gtkmm.h>
 #include <gtkglmm.h>
+#include <GL/glu.h>
 #include "algebra.hpp"
 #include "maze.hpp"
 #include "ball.hpp"
@@ -65,6 +66,7 @@ protected:
   void configure_skybox();
   void configure_textures();
   bool do_physics();
+  void draw_spire();
 
 private:
   bool m_left_click_pressed;
@@ -89,8 +91,10 @@ private:
   Ball m_ball;
 
   GLuint m_texture[6];
-  GLuint m_wall_textures[2];
+  GLuint m_wall_textures[3];
   sigc::connection m_conn;
+
+  GLUquadricObj *m_quadratic;
 };
 
 #endif
