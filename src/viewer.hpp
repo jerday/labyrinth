@@ -84,6 +84,7 @@ private:
   static const double g = 9.81;
   static const double time_refresh = 10;
   bool m_ball_set;
+  bool m_collision_y;
 
   Point3D m_camera;
 

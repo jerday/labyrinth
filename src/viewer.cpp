@@ -627,10 +627,10 @@ void Viewer::draw_maze()
 		for(int z = 0; z < m_maze->getHeight(); z++) {
 			char id = (*m_maze)(x,z);
 			if(id == 'w') {
-				draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
+	//			draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
 			}
 			if(id == 's' && !m_ball_set) {
-				m_ball = Ball((int)width/2 + x - 0.5,0.4,(int)height/2 - z - 0.5,ball_radius);
+				m_ball = Ball((int)width/2 + x - 0.5,10,(int)height/2 - z - 0.5,ball_radius);
 				m_ball_set = true;
 			}
 		}
@@ -812,6 +812,7 @@ void Viewer::draw_all() {
 
 bool Viewer::do_physics() {
 	if (m_mode == GAME) {
+		double delta_t = time_refresh / 1000;
 		double xtiltrad = (m_tilt_x / 180) * 3.141592654; //this moves the ball in the z direction (tilt around x)
 		double ztiltrad = (m_tilt_z / 180) * 3.141592654; 
 		double gforcex = g*sin(ztiltrad); //net force in the direction of the tilt
@@ -819,17 +820,36 @@ bool Viewer::do_physics() {
 		double gforcez = g*sin(-xtiltrad);
 		double gforcez_h = gforcez * cos(xtiltrad);
 
-		double gforcey = gforcex*sin(ztiltrad) + gforcez*sin(-xtiltrad);
+		//double gforcey = gforcex*sin(ztiltrad) + gforcez*sin(-xtiltrad);
 		double netforcey = 0;
 		//double floor_normal_v = max(g*cos(ztiltrad),g*cos(xtiltrad))*min(cos(ztiltrad),cos(xtiltrad));
 
-		double delta_t = time_refresh / 1000;
+		double ball_z = -m_ball.m_location[2];
+		double ball_x = m_ball.m_location[0];
+		double floor_y = ball_z * sin(-xtiltrad);
+		std::cout << "Floor height at ball's location = " << floor_y << std::endl;
+
+
+		if () {
+			m_ball.m_location[1] -= m_ball.m_velocity[1]*delta_t - 0.5*g*delta_t*delta_t;
+			m_ball.m_velocity[1] = m_ball.m_velocity[1] + g*delta_t;
+		} else {
+			m_ball.m_location[1] += 0;//ball_radius;
+			if (m_ball.m_location[1] > (ball_radius-0.01) && 
+				m_ball.m_location[1] < (ball_radius+0.01) && abs(m_ball.m_velocity[1]) < 0.1) {
+				m_ball.m_velocity[1] = 0;
+			} else {
+				m_ball.m_velocity[1] = -m_ball.m_velocity[1] * 0.1;
+				m_ball.m_location[1] -= m_ball.m_velocity[1]*delta_t - 0.5*g*delta_t*delta_t;
+			} 
+		}
+
 
 		m_ball.m_velocity = Point3D(m_ball.m_velocity[0] + gforcex_h * delta_t, 
-				m_ball.m_velocity[1] + netforcey*delta_t, 
+				m_ball.m_velocity[1], 
 				m_ball.m_velocity[2] + gforcez_h*delta_t);
 		m_ball.m_location = Point3D(m_ball.m_location[0] + m_ball.m_velocity[0]*delta_t,
-				m_ball.m_location[1] - m_ball.m_velocity[1]*delta_t, 
+				m_ball.m_location[1], 
 				m_ball.m_location[2] + m_ball.m_velocity[2]*delta_t);
 		std::cout << "ball velocity: " << m_ball.m_velocity << std::endl;
 		std::cout << "ball location: " << m_ball.m_location << std::endl;
