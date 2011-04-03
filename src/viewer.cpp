@@ -940,6 +940,7 @@ double Viewer::is_ball_below_floor() {
 	Vector3D sphereCentre = Vector3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
 	double dist = m_floor_normal.dot(sphereCentre);
 	//if(dist-m_ball.m_radius > 0) return true;
+	m_floor_d = -negD;
 	return dist-m_ball.m_radius;
 	//return false;
 }
