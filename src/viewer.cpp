@@ -40,6 +40,7 @@ Viewer::Viewer()
   m_rotate_y = 0;
   m_tilt_x = 0;
   m_tilt_z = 0;
+  m_ball_set = false;
   m_skybox = ALPINE;
 }
 
@@ -212,7 +213,7 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
 	configure_textures();
 
 	  m_conn.disconnect();
-	  m_conn = Glib::signal_timeout().connect(sigc::mem_fun(*this, &Viewer::do_physics), 10);
+	  m_conn = Glib::signal_timeout().connect(sigc::mem_fun(*this, &Viewer::do_physics), time_refresh);
 
 
 	return true;
@@ -334,7 +335,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[0] += cos(yrotrad);
 			m_camera[2] += sin(yrotrad);
 		} else if(m_mode == GAME) {
-
+			m_tilt_z += 1;
 		}
 		break;
 	case GDK_D:
@@ -345,7 +346,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[0] -= cos(yrotrad);
 			m_camera[2] -= sin(yrotrad);
 		} else if(m_mode == GAME) {
-
+			m_tilt_z -= 1;
 		}
 		break;
 	}
@@ -595,6 +596,9 @@ void Viewer::draw_maze()
 {
 	glPushMatrix();
 	glRotated(m_tilt_x,1.0,0.0,0.0);
+	glRotated(m_tilt_z,0.0,0.0,1.0);
+	std::cout << "tilt x = " << m_tilt_x << " ; tilt z = " << m_tilt_z << std::endl;
+	
 	int width = m_maze->getWidth();
 	int height = m_maze->getHeight();
 	double ball_radius = 0.4;
@@ -613,8 +617,9 @@ void Viewer::draw_maze()
 			if(id == 'w') {
 				draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
 			}
-			if(id == 's') {
+			if(id == 's' && !m_ball_set) {
 				m_ball = Ball((int)width/2 + x - 0.5,1.0,(int)height/2 - z - 0.5,ball_radius);
+				m_ball_set = true;
 			}
 		}
 	}
@@ -781,6 +786,32 @@ void Viewer::draw_all() {
 }
 
 bool Viewer::do_physics() {
-	std::cout << "DO PHYSICS YO" << std::endl;
+	if (m_mode == GAME) {
+		double xtiltrad = (m_tilt_x / 180) * 3.141592654; //this moves the ball in the z direction (tilt around x)
+		double ztiltrad = (m_tilt_z / 180) * 3.141592654; 
+		double gforcex = g*sin(ztiltrad); //net force in the direction of the tilt
+		double gforcex_h = gforcex * cos(ztiltrad); 
+		double gforcez = g*sin(-xtiltrad);
+		double gforcez_h = gforcez * cos(xtiltrad);
+
+		double gforcey = gforcex*sin(ztiltrad) + gforcez*sin(-xtiltrad);
+
+		double delta_t = time_refresh / 1000;
+
+		m_ball.m_velocity = Point3D(m_ball.m_velocity[0] + gforcex_h * delta_t, 
+				m_ball.m_velocity[1] + gforcey*delta_t, 
+				m_ball.m_velocity[2] + gforcez_h*delta_t);
+		m_ball.m_location = Point3D(m_ball.m_location[0] + m_ball.m_velocity[0]*delta_t,
+				m_ball.m_location[1] - m_ball.m_velocity[1]*delta_t, 
+				m_ball.m_location[2] + m_ball.m_velocity[2]*delta_t);
+		std::cout << "ball velocity: " << m_ball.m_velocity << std::endl;
+		std::cout << "ball location: " << m_ball.m_location << std::endl;
+		std::cout << "tilt x = " << m_tilt_x << " ; tilt z = " << m_tilt_z << std::endl;
+		invalidate();
+	}
 	return true;
 }
+
+
+
+

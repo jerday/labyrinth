@@ -7,6 +7,7 @@ Ball::~Ball() { }
 Ball::Ball(double x, double y, double z, double radius) {
 	m_location = Point3D(x,y,z);
 	m_radius = radius;
+	m_velocity = Point3D(0.0,0.0,0.0);
 }
 
 void Ball::draw() {
