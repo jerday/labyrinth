@@ -67,7 +67,7 @@ protected:
   void configure_textures();
   bool do_physics();
   void draw_spire();
-  bool is_ball_below_floor();
+  double is_ball_below_floor();
 
 private:
   bool m_left_click_pressed;

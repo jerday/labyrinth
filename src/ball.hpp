@@ -12,6 +12,7 @@ public:
 	Point3D m_location;
 	double m_radius;
 	Point3D m_velocity;
+	Point3D m_angle;
 };
 
 #endif

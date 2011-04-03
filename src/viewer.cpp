@@ -630,7 +630,7 @@ void Viewer::draw_maze()
 	//			draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
 			}
 			if(id == 's' && !m_ball_set) {
-				m_ball = Ball((int)width/2 + x - 0.5,10,(int)height/2 - z - 0.5,ball_radius);
+				m_ball = Ball((int)width/2 + x - 0.5,3,(int)height/2 - z - 0.5,ball_radius);
 				m_ball_set = true;
 			}
 		}
@@ -826,15 +826,32 @@ bool Viewer::do_physics() {
 
 		double ball_z = -m_ball.m_location[2];
 		double ball_x = m_ball.m_location[0];
-		double floor_y = ball_z * sin(-xtiltrad);
+		double floor_y = ball_z * sin(-xtiltrad) + ball_x * sin(-ztiltrad);
 		std::cout << "Floor height at ball's location = " << floor_y << std::endl;
 
-
-		if () {
+		double floor_ball_dist = is_ball_below_floor();
+		std::cout << "floor-ball dist = " << floor_ball_dist << std::endl;
+		double bad_angle = std::min(cos(xtiltrad),cos(ztiltrad));
+		if(m_ball.m_location[1] - ball_radius/bad_angle > floor_y) {
 			m_ball.m_location[1] -= m_ball.m_velocity[1]*delta_t - 0.5*g*delta_t*delta_t;
 			m_ball.m_velocity[1] = m_ball.m_velocity[1] + g*delta_t;
 		} else {
-			m_ball.m_location[1] += 0;//ball_radius;
+			m_ball.m_location[1] = floor_y + ball_radius;
+			if (m_ball.m_location[1] > (ball_radius-0.01) && 
+				m_ball.m_location[1] < (ball_radius+0.01) && abs(m_ball.m_velocity[1]) < 0.1) {
+				m_ball.m_velocity[1] = 0;
+			} else {
+				m_ball.m_velocity[1] = -m_ball.m_velocity[1] * 0.05;
+				m_ball.m_location[1] -= m_ball.m_velocity[1]*delta_t - 0.5*g*delta_t*delta_t;
+			} 
+			
+		}
+		/*	
+		if(floor_ball_dist > 0) {
+			m_ball.m_location[1] -= m_ball.m_velocity[1]*delta_t - 0.5*g*delta_t*delta_t;
+			m_ball.m_velocity[1] = m_ball.m_velocity[1] + g*delta_t;
+		} else {
+			m_ball.m_location[1] = 0.4;
 			if (m_ball.m_location[1] > (ball_radius-0.01) && 
 				m_ball.m_location[1] < (ball_radius+0.01) && abs(m_ball.m_velocity[1]) < 0.1) {
 				m_ball.m_velocity[1] = 0;
@@ -842,21 +859,27 @@ bool Viewer::do_physics() {
 				m_ball.m_velocity[1] = -m_ball.m_velocity[1] * 0.1;
 				m_ball.m_location[1] -= m_ball.m_velocity[1]*delta_t - 0.5*g*delta_t*delta_t;
 			} 
+			
 		}
+		*/
 
-
+		
+		if (m_ball.m_velocity[0] != 0) {
+			m_ball.m_angle[2] = m_ball.m_velocity[0] * 150;
+		}
+		if (m_ball.m_velocity[2] != 0) {
+			m_ball.m_angle[0] = -m_ball.m_velocity[2] * 150;
+		}
 		m_ball.m_velocity = Point3D(m_ball.m_velocity[0] + gforcex_h * delta_t, 
 				m_ball.m_velocity[1], 
 				m_ball.m_velocity[2] + gforcez_h*delta_t);
 		m_ball.m_location = Point3D(m_ball.m_location[0] + m_ball.m_velocity[0]*delta_t,
 				m_ball.m_location[1], 
 				m_ball.m_location[2] + m_ball.m_velocity[2]*delta_t);
+		
 		std::cout << "ball velocity: " << m_ball.m_velocity << std::endl;
 		std::cout << "ball location: " << m_ball.m_location << std::endl;
 		std::cout << "tilt x = " << m_tilt_x << " ; tilt z = " << m_tilt_z << std::endl;
-		if(is_ball_below_floor()) {
-			std::cout << "ball below floor" << std::endl;
-		}
 		invalidate();
 	}
 	return true;
@@ -904,10 +927,10 @@ double Viewer::is_ball_below_floor() {
 			    + p2[0] * (p3[1] * p1[2] - p1[1] * p3[2])
 			    + p3[0] * (p1[1] * p2[2] - p2[1] * p1[2]);
 	std::cout << "A:" << A << "B:" << B << "C:" << C << std::endl;
-	m_floor_normal = Vector3D(A,B,C); normal.normalize();
+	m_floor_normal = Vector3D(A,B,C); m_floor_normal.normalize();
 
 	Vector3D sphereCentre = Vector3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
-	double dist = normal.dot(sphereCentre) + negD;
+	double dist = m_floor_normal.dot(sphereCentre) + negD;
 	//if(dist-m_ball.m_radius > 0) return true;
 	return dist-m_ball.m_radius;
 	//return false;
