@@ -59,7 +59,7 @@ AppWindow::AppWindow()
 }
 
 void AppWindow::rickroll() {
-	int id = SM.LoadMusic("../data/rickroll.mp3");
+	int id = SM.LoadMusic("../data/rickroll.wav");
 	SM.PlayMusic(id);
 }
 bool AppWindow::on_key_press_event( GdkEventKey *ev )
