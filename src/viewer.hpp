@@ -102,6 +102,7 @@ private:
 
   GLUquadricObj *m_quadratic;
   Vector3D m_floor_normal;
+  Vector3D m_wall_collision_normal;
 };
 
 #endif

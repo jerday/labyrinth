@@ -994,7 +994,11 @@ double Viewer::is_ball_in_wall() {
 					if(i==0) { neg = true; p2 = p5; }
 					if(i==1) { neg = true; p1 = p6; p3 = p4; }
 					if(i==2) { neg = false; p2 =  Point3D(width/2 - (x+1),0,height/2 - z); }// back to p2
-					min_dist = std::min(min_dist,dist);
+
+					if( dist < min_dist) {
+						min_dist = dist;
+						m_wall_collision_normal = normal;
+					}
 				}
 			}
 		}
