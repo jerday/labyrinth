@@ -10,6 +10,7 @@ class AppWindow : public Gtk::Window {
 public:
   AppWindow();
   bool parse_maze(std::string file);
+  void rickroll();
 protected:
   virtual bool on_key_press_event( GdkEventKey *ev );
 

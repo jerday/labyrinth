@@ -24,5 +24,7 @@ int main(int argc, char** argv)
 		//window.fullscreen();
 		Gtk::Main::run(window);
 	}
+
+
 }
 

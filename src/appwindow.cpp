@@ -1,7 +1,7 @@
 #include "appwindow.hpp"
 #include "image.hpp"
 #include <iostream>
-
+#include "SoundManager.h"
 
 AppWindow::AppWindow()
 {
@@ -12,6 +12,7 @@ AppWindow::AppWindow()
   using Gtk::Menu_Helpers::CheckMenuElem;
 
   // Set up the application menu
+  m_menu_app.items().push_back(MenuElem("_Rickroll", Gtk::AccelKey("r"), sigc::mem_fun(*this, &AppWindow::rickroll)));
   m_menu_app.items().push_back(MenuElem("_Quit", Gtk::AccelKey("q"), sigc::mem_fun(*this, &AppWindow::hide)));
 
   // Set up the mode menu
@@ -57,6 +58,10 @@ AppWindow::AppWindow()
   show_all();
 }
 
+void AppWindow::rickroll() {
+	int id = SM.LoadMusic("../data/rickroll.mp3");
+	SM.PlayMusic(id);
+}
 bool AppWindow::on_key_press_event( GdkEventKey *ev )
 {
         // This is a convenient place to handle non-shortcut
