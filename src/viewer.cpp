@@ -454,60 +454,85 @@ void Viewer::draw_floor(const int width, const int height)
 
 	glTranslated(-width/2,-1,height/2);
     glScaled(width,1,height);
-
+    int tilesW = width / 2;
+    int tilesH = height /2 ;
 	glBindTexture(GL_TEXTURE_2D, m_wall_textures[1]);
 	glBegin(GL_QUADS);
-	// topviewer.cpp:284:
+	// top
 	glNormal3d(0.0,1.001,0.0);
-		glTexCoord2f(15, 15); glVertex3d(1.001, 1.001,-1.001); // top right
-		glTexCoord2f(0, 15); glVertex3d(0.0, 1.001,-1.001); // top left
-		glTexCoord2f(0, 0); glVertex3d(0.0, 1.001, 0.0); // bottom left
-		glTexCoord2f(15, 0); glVertex3d(1.001, 1.001, 0.0); // bottom right
+		glTexCoord2f(tilesW,tilesH);
+		glVertex3d(1.001, 1.001,-1.001); // top right
+		glTexCoord2f(0, tilesH);
+		glVertex3d(0.0, 1.001,-1.001); // top left
+		glTexCoord2f(0, 0);
+		glVertex3d(0.0, 1.001, 0.0); // bottom left
+		glTexCoord2f(tilesW, 0);
+		glVertex3d(1.001, 1.001, 0.0); // bottom right
 	glEnd();
 
 	// bottom
 	glBegin(GL_QUADS);
 		glNormal3d(0.0,-1.001,0.0);
-		glTexCoord2f(15, 15); glVertex3d(1.001,0.0,-1.001); // top right
-		glTexCoord2f(0, 15); glVertex3d(0.0,0.0,-1.001); // top left
-		glTexCoord2f(0, 0); glVertex3d(0.0,0.0,0.0); // bottom left
-		glTexCoord2f(15, 0); glVertex3d(1.001,0.0,0.0); // bottom right
+		glTexCoord2f(tilesW, tilesH);
+		glVertex3d(1.001,0.0,-1.001); // top right
+		glTexCoord2f(0, tilesH);
+		glVertex3d(0.0,0.0,-1.001); // top left
+		glTexCoord2f(0, 0);
+		glVertex3d(0.0,0.0,0.0); // bottom left
+		glTexCoord2f(tilesW, 0);
+		glVertex3d(1.001,0.0,0.0); // bottom right
 	glEnd();
 
 	// front
 	glBegin(GL_QUADS);
 		glNormal3f(0.0,0.0,1.001);
-		glTexCoord2f(15,1); glVertex3d(1.001,1.001,0.0); // top right
-		glTexCoord2f(0,1); glVertex3d(0.0,1.001,0.0); // top left
-		glTexCoord2f(0, 0); glVertex3d(0.0,0.0,0.0); // bottom left
-		glTexCoord2f(15, 0); glVertex3d(1.001,0.0,0.0); // bottom right
+		glTexCoord2f(tilesH,1);
+		glVertex3d(1.001,1.001,0.0); // top right
+		glTexCoord2f(0,1);
+		glVertex3d(0.0,1.001,0.0); // top left
+		glTexCoord2f(0, 0);
+		glVertex3d(0.0,0.0,0.0); // bottom left
+		glTexCoord2f(tilesH, 0);
+		glVertex3d(1.001,0.0,0.0); // bottom right
 	glEnd();
 
 	// back
 	glBegin(GL_QUADS);
 		glNormal3f(0.0,0.0,-1.0);
-		glTexCoord2f(15, 1); glVertex3d(0.0,0.0,-1.001); // bottom left
-		glTexCoord2f(0, 1); glVertex3d(1.001,0.0,-1.001); // bottom right
-		glTexCoord2f(0, 0); glVertex3d(1.001,1.001,-1.001); // top right
-		glTexCoord2f(15, 0); glVertex3d(0.0,1.001,-1.001); // top left
+		glTexCoord2f(tilesW, 1);
+		glVertex3d(0.0,0.0,-1.001); // bottom left
+		glTexCoord2f(0, 1);
+		glVertex3d(1.001,0.0,-1.001); // bottom right
+		glTexCoord2f(0, 0);
+		glVertex3d(1.001,1.001,-1.001); // top right
+		glTexCoord2f(tilesW, 0);
+		glVertex3d(0.0,1.001,-1.001); // top left
 	glEnd();
 
 	// left
 	glBegin(GL_QUADS);
 		glNormal3f(-1.0,0.0,0.0);
-		glTexCoord2f(15, 1); glVertex3d(0.0,1.001,-1.001); // top right
-		glTexCoord2f(0, 1); glVertex3d(0.0,1.001,0.0); // top left
-		glTexCoord2f(0, 0); glVertex3d(0.0,0.0,0.0); // bottom left
-		glTexCoord2f(15, 0); glVertex3d(0.0,0.0,-1.001); // bottom right
+		glTexCoord2f(tilesW, 1);
+		glVertex3d(0.0,1.001,-1.001); // top right
+		glTexCoord2f(0, 1);
+		glVertex3d(0.0,1.001,0.0); // top left
+		glTexCoord2f(0, 0);
+		glVertex3d(0.0,0.0,0.0); // bottom left
+		glTexCoord2f(tilesW, 0);
+		glVertex3d(0.0,0.0,-1.001); // bottom right
 	glEnd();
 
 	// right
 	glBegin(GL_QUADS);
 		glNormal3f(1.0,0.0,0.0);
-		glTexCoord2f(15,1); glVertex3d(1.001,1.001,0.0); // top right
-		glTexCoord2f(0,1); glVertex3d(1.001,1.001,-1.001); // top left
-		glTexCoord2f(0,0); glVertex3d(1.001,0.0,-1.001); // bottom left
-		glTexCoord2f(15,0); glVertex3d(1.001,0.0,0.0); // bottom right
+		glTexCoord2f(tilesW,1);
+		glVertex3d(1.001,1.001,0.0); // top right
+		glTexCoord2f(0,1);
+		glVertex3d(1.001,1.001,-1.001); // top left
+		glTexCoord2f(0,0);
+		glVertex3d(1.001,0.0,-1.001); // bottom left
+		glTexCoord2f(tilesW,0);
+		glVertex3d(1.001,0.0,0.0); // bottom right
 	glEnd();
 
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -617,10 +642,10 @@ void Viewer::draw_maze()
 	draw_floor(width+2,height+2);
 
 	// outside walls
-	draw_wall(-width/2-1, 0,  height/2+1, width+2,'x',Colour(0,0,1));
-	draw_wall(-width/2-1, 0,  height/2+1, height+2,'z',Colour(0,0,1));
-	draw_wall(-width/2-1, 0, -height/2-1, width+2,'x',Colour(0,0,1));
-	draw_wall( width/2+1, 0,  height/2+1, height+2,'z',Colour(0,0,1));
+	//draw_wall(-width/2-1, 0,  height/2+1, width+2,'x',Colour(0,0,1));
+	//draw_wall(-width/2-1, 0,  height/2+1, height+2,'z',Colour(0,0,1));
+	//draw_wall(-width/2-1, 0, -height/2-1, width+2,'x',Colour(0,0,1));
+	//wdraw_wall( width/2+1, 0,  height/2+1, height+2,'z',Colour(0,0,1));
 
 	for(int x = 0; x < m_maze->getWidth(); x++) {
 		for(int z = 0; z < m_maze->getHeight(); z++) {
@@ -916,6 +941,45 @@ Matrix4x4 getRotate(char axis, double angle)
     return Matrix4x4(r1,r2,r3,r4);
 }
 
+double Viewer::is_ball_in_wall() {
+	Point3D p1,p2,p3,p4,p5,p6;
+	double A, B, C, dist;
+	Vector3D normal;
+	Matrix4x4 rotation = getRotate('x', m_tilt_x) * getRotate('z',m_tilt_z);
+	Vector3D sphereCentre = Vector3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
+	double min_dist = 99999;
+	for(int x = 0; x < m_maze->getWidth(); x++) {
+		for(int z = 0; z < m_maze->getHeight(); z++) {
+			char id = (*m_maze)(x,z);
+			if(id == 'w') {
+				p1 = Point3D(x,0,z);
+				p2 = Point3D(x+1,0,z);
+				p3 = Point3D(x,1,z);
+				p4 = Point3D(x+1,0,z-1);
+				p5 = Point3D(x,1,z-1);
+				p6 = Point3D(x+1,1,z-1);
+
+				for(int i = 0; i < 3; i++) {
+					A = p1[1] * (p2[2] - p3[2]) + p2[1] * (p3[2] - p1[2]) + p3[1] * (p1[2] - p2[2]);
+					B = p1[2] * (p2[0] - p3[0]) + p2[2] * (p3[0] - p1[0]) + p3[2] * (p1[0] - p2[0]);
+					C = p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1]);
+
+					normal = rotation * Vector3D(A,B,C); normal.normalize();
+					dist = m_floor_normal.dot(sphereCentre)-m_ball.m_radius;
+					if(dist < 0) {
+						return dist;
+					}
+
+					if(i==0) p2 = p5;
+					if(i==1) { p1 = p6; p3 = p4; }
+					if(i==2) p2 =  Point3D(x+1,0,z); // back to p2
+					min_dist = std::min(min_dist,dist);
+				}
+			}
+		}
+	}
+	return min_dist;
+}
 // doesn't work...
 double Viewer::is_ball_below_floor() {
 	// Three points in the floor 'plane'
@@ -931,9 +995,10 @@ double Viewer::is_ball_below_floor() {
 	double A = p1[1] * (p2[2] - p3[2]) + p2[1] * (p3[2] - p1[2]) + p3[1] * (p1[2] - p2[2]);
 	double B = p1[2] * (p2[0] - p3[0]) + p2[2] * (p3[0] - p1[0]) + p3[2] * (p1[0] - p2[0]);
 	double C = p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1]);
-	double negD = p1[0] * (p2[1] * p3[2] - p3[1] * p2[2])
-			    + p2[0] * (p3[1] * p1[2] - p1[1] * p3[2])
-			    + p3[0] * (p1[1] * p2[2] - p2[1] * p1[2]);
+	//double negD = p1[0] * (p2[1] * p3[2] - p3[1] * p2[2])
+	//		    + p2[0] * (p3[1] * p1[2] - p1[1] * p3[2])
+	//		    + p3[0] * (p1[1] * p2[2] - p2[1] * p1[2]);
+	std::cout << "A:" << A << "B:" << B << "C:" << C << std::endl;
 	m_floor_normal = Vector3D(A,B,C);
 	m_floor_normal = rotateZ * rotateX * m_floor_normal; m_floor_normal.normalize();
 	std::cout << "normal vector = " << m_floor_normal << std::endl;
@@ -942,7 +1007,7 @@ double Viewer::is_ball_below_floor() {
 
 	double dist = m_floor_normal.dot(sphereCentre);
 	//if(dist-m_ball.m_radius > 0) return true;
-	m_floor_d = -negD;
+	//m_floor_d = -negD;
 	//if (fabs(dist-m_ball.m_radius) < 0.000001) return 0;
 	return dist-m_ball.m_radius;
 	//return false;

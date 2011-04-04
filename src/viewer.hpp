@@ -68,7 +68,7 @@ protected:
   bool do_physics();
   void draw_spire();
   double is_ball_below_floor();
-
+  double is_ball_in_wall();
 private:
   bool m_left_click_pressed;
   bool m_middle_click_pressed;
@@ -102,7 +102,6 @@ private:
 
   GLUquadricObj *m_quadratic;
   Vector3D m_floor_normal;
-  double m_floor_d;
 };
 
 #endif
