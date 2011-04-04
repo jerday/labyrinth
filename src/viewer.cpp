@@ -962,32 +962,38 @@ double Viewer::is_ball_in_wall() {
 			char id = (*m_maze)(x,z);
 			if(id == 'w') {
 				std::cout << "wall: (" << x <<"," << z << ")" << std::endl;
-				p1 = Point3D(-width/2 + x,0,-height/2 + z);
-				p2 = Point3D(-width/2 + x-1,0,-height/2 + z);
-				p3 = Point3D(-width/2 + x,1,-height/2 + z);
-				p4 = Point3D(-width/2 + x-1,0,-height/2 + z+1);
-				p5 = Point3D(-width/2 + x,1,-height/2 + z+1);
-				p6 = Point3D(-width/2 + x-1,1,-height/2 + z+1);
+				p1 = Point3D(width/2 - x,0,height/2 - z);
+				p2 = Point3D(width/2 - (x+1),0,height/2 - z);
+				p3 = Point3D(width/2 - x,1,height/2 - z);
+				p4 = Point3D(width/2 - (x+1),0,height/2 - (z-1));
+				p5 = Point3D(width/2 - x,1,height/2 - (z-1));
+				p6 = Point3D(width/2 - (x+1),1,height/2 - (z-1));
+				std::cout << "p1 = " << p1 << " p2 = " << p2 << " p3 = " << p3 << std::endl;
+				std::cout << "p4 = " << p4 << " p5 = " << p5 << " p6 = " << p6 << std::endl;
 
 				for(int i = 0; i < 4; i++) {
 					A = p1[1] * (p2[2] - p3[2]) + p2[1] * (p3[2] - p1[2]) + p3[1] * (p1[2] - p2[2]);
 					B = p1[2] * (p2[0] - p3[0]) + p2[2] * (p3[0] - p1[0]) + p3[2] * (p1[0] - p2[0]);
 					C = p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1]);
+					double negD = p1[0] * (p2[1] * p3[2] - p3[1] * p2[2])
+							    + p2[0] * (p3[1] * p1[2] - p1[1] * p3[2])
+							    + p3[0] * (p1[1] * p2[2] - p2[1] * p1[2]);
 					if(neg) {
 						A = -A;
 						B = -B;
 						C = -C;
+						negD = -negD;
 					}
 					normal = rotation * Vector3D(A,B,C); normal.normalize();
-					dist = normal.dot(sphereCentre)-m_ball.m_radius;
-					std::cout << "dist"<<i<<": " << dist << std::endl;
+					dist = normal.dot(sphereCentre)-m_ball.m_radius-negD;
+					std::cout << "dist"<<i<<": " << dist << ", normal = " << normal << " negD = " << negD << std::endl;
 					if(dist > 0) {
-						//return dist;
+						return dist;
 					}
 
 					if(i==0) { neg = true; p2 = p5; }
-					if(i==1) { neg = false; p1 = p6; p3 = p4; }
-					if(i==2) { neg = true; p2 =  Point3D(-width/2 + x-1,0,-height/2 + z); }// back to p2
+					if(i==1) { neg = true; p1 = p6; p3 = p4; }
+					if(i==2) { neg = false; p2 =  Point3D(width/2 - (x+1),0,height/2 - z); }// back to p2
 					min_dist = std::min(min_dist,dist);
 				}
 			}
@@ -1013,7 +1019,7 @@ double Viewer::is_ball_below_floor() {
 	//double negD = p1[0] * (p2[1] * p3[2] - p3[1] * p2[2])
 	//		    + p2[0] * (p3[1] * p1[2] - p1[1] * p3[2])
 	//		    + p3[0] * (p1[1] * p2[2] - p2[1] * p1[2]);
-	std::cout << "A:" << A << "B:" << B << "C:" << C << std::endl;
+	//std::cout << "A:" << A << "B:" << B << "C:" << C << std::endl;
 	m_floor_normal = Vector3D(A,B,C);
 	m_floor_normal = rotateZ * rotateX * m_floor_normal; m_floor_normal.normalize();
 	std::cout << "normal vector = " << m_floor_normal << std::endl;
