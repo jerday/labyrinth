@@ -11,7 +11,7 @@ public:
 	void draw();
 	Point3D m_location;
 	double m_radius;
-	Point3D m_velocity;
+	Vector3D m_velocity;
 	Point3D m_angle;
 };
 

@@ -324,6 +324,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[2] += cos(yrotrad)*cos(xrotrad);
 		} else if(m_mode == GAME) {
 			m_tilt_x -= 0.5;
+			if(m_tilt_x < -4) m_tilt_x = -4;
 		}
 		break;
 	case GDK_S:
@@ -337,6 +338,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[2] -= cos(yrotrad)*cos(xrotrad);
 		} else if(m_mode == GAME) {
 			m_tilt_x += 0.5;
+			if(m_tilt_x > 4) m_tilt_x = 4;
 		}
 		break;
 	case GDK_A:
@@ -348,6 +350,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[2] += sin(yrotrad);
 		} else if(m_mode == GAME) {
 			m_tilt_z += 0.5;
+			if(m_tilt_z > 4) m_tilt_z = 4;
 		}
 		break;
 	case GDK_D:
@@ -359,6 +362,7 @@ bool Viewer::on_key_press_event(GdkEventKey* event)
 			m_camera[2] -= sin(yrotrad);
 		} else if(m_mode == GAME) {
 			m_tilt_z -= 0.5;
+			if(m_tilt_z < -4) m_tilt_z = -4;
 		}
 		break;
 	}
@@ -799,7 +803,7 @@ void Viewer::draw_all() {
 	glShadeModel ( GL_SMOOTH );
 
 	if(m_mode == GAME) {
-		double balldist = 8;
+		double balldist = 20;
 		double yrotrad = (m_rotate_y / 180) * 3.141592654;
 		double xrotrad = (m_rotate_x / 180) * 3.141592654;
 		double hball = balldist*sin(xrotrad);
@@ -809,7 +813,7 @@ void Viewer::draw_all() {
 		m_camera = Point3D(m_ball.m_location[0]+xball,
 				m_ball.m_location[1]+hball,m_ball.m_location[2]-zball);
 	}
-	std::cout << "camera: " << m_camera << std::endl;
+	//std::cout << "camera: " << m_camera << std::endl;
 
 	// for flying mode, rotate y based on mouse x
 	glRotated(m_rotate_x,1.0,0.0,0.0);
@@ -857,25 +861,25 @@ bool Viewer::do_physics() {
 		
 		double floor_y = (-m_floor_normal[0]*ball_x+m_floor_normal[2]*ball_z)/m_floor_normal[1];
 		double floor_ya = ball_z * tan(-xtiltrad) + ball_x * tan(-ztiltrad);
-		std::cout << "Floor height at ball's location = " << floor_y << " or " << floor_ya << std::endl;
+		//std::cout << "Floor height at ball's location = " << floor_y << " or " << floor_ya << std::endl;
 
 		double bx = ball_x / cos(ztiltrad);
 		double bz = ball_z / cos(xtiltrad);
 		double cornerd = sqrt(bx*bx+bz*bz);
 		
-		std::cout << "corner distance = " << cornerd << std::endl;
+		//std::cout << "corner distance = " << cornerd << std::endl;
 		double nta = asin(floor_y / cornerd);
-		std::cout << "x tilt rad = " << xtiltrad << " ; z tilt rad = " << ztiltrad << std::endl;
+		//std::cout << "x tilt rad = " << xtiltrad << " ; z tilt rad = " << ztiltrad << std::endl;
 		if (fabs(xtiltrad) < 0.0000001) nta = ztiltrad;
 		else if (fabs(ztiltrad) < 0.0000001) nta = xtiltrad;
-		std::cout << "net tilt angle = " << nta << std::endl;
+		//std::cout << "net tilt angle = " << nta << std::endl;
 		double baa = ball_radius / cos(nta);
 		
-		std::cout << "adjustment = " << baa << std::endl;
+		//std::cout << "adjustment = " << baa << std::endl;
 
 
 		double floor_ball_dist = is_ball_below_floor();
-		std::cout << "floor-ball dist = " << floor_ball_dist << std::endl;
+		//std::cout << "floor-ball dist = " << floor_ball_dist << std::endl;
 
 
 		//if(floor_ball_dist > 0.0) {
@@ -892,7 +896,6 @@ bool Viewer::do_physics() {
 			
 		//}
 		
-		
 		if (m_ball.m_velocity[0] != 0) {
 			m_ball.m_angle[2] = m_ball.m_velocity[0] * 360;
 		}
@@ -900,9 +903,22 @@ bool Viewer::do_physics() {
 			m_ball.m_angle[0] = -m_ball.m_velocity[2] * 360;
 		}
 		
-		m_ball.m_velocity = Point3D(m_ball.m_velocity[0] + gforcex_h * delta_t, 
+		m_ball.m_velocity = Vector3D(m_ball.m_velocity[0] + gforcex_h * delta_t, 
 				m_ball.m_velocity[1], 
 				m_ball.m_velocity[2] + gforcez_h*delta_t);
+
+		double biw = is_ball_in_wall();
+		if (biw < -0.0) { // ball in wall 
+			std::cout << "BALL IN WALL = " << biw << std::endl;
+			std::cout << "wall normal: " << m_wall_collision_normal << std::endl;
+			for (int i=0; i < 3; i++) {
+				m_ball.m_velocity[i] += m_wall_collision_normal[i]*0.5;
+				m_ball.m_location[i] += m_wall_collision_normal[i]*fabs(biw);
+			}
+		} 
+
+
+
 		m_ball.m_location = Point3D(m_ball.m_location[0] + m_ball.m_velocity[0]*delta_t,
 				m_ball.m_location[1], 
 				m_ball.m_location[2] + m_ball.m_velocity[2]*delta_t);
@@ -913,11 +929,8 @@ bool Viewer::do_physics() {
 		
 
 		//std::cout << "ball velocity: " << m_ball.m_velocity << std::endl;
-		std::cout << "ball location: " << m_ball.m_location << std::endl;
-		std::cout << "tilt x = " << m_tilt_x << " ; tilt z = " << m_tilt_z << std::endl;
-		if(is_ball_in_wall() < 0) {
-			std::cout << "BALL IN WALL" << std::endl;
-		}
+		//std::cout << "ball location: " << m_ball.m_location << std::endl;
+		//std::cout << "tilt x = " << m_tilt_x << " ; tilt z = " << m_tilt_z << std::endl;
 		invalidate();
 	}
 	return true;
@@ -961,16 +974,17 @@ double Viewer::is_ball_in_wall() {
 		for(int z = 0; z < m_maze->getHeight(); z++) {
 			char id = (*m_maze)(x,z);
 			if(id == 'w') {
-				std::cout << "wall: (" << x <<"," << z << ")" << std::endl;
+				min_dist = 99999;
+				//std::cout << "wall: (" << x <<"," << z << ")" << std::endl;
 				p1 = Point3D(width/2 - x,0,height/2 - z);
 				p2 = Point3D(width/2 - (x+1),0,height/2 - z);
 				p3 = Point3D(width/2 - x,1,height/2 - z);
 				p4 = Point3D(width/2 - (x+1),0,height/2 - (z-1));
 				p5 = Point3D(width/2 - x,1,height/2 - (z-1));
 				p6 = Point3D(width/2 - (x+1),1,height/2 - (z-1));
-				std::cout << "p1 = " << p1 << " p2 = " << p2 << " p3 = " << p3 << std::endl;
-				std::cout << "p4 = " << p4 << " p5 = " << p5 << " p6 = " << p6 << std::endl;
-
+				//std::cout << "p1 = " << p1 << " p2 = " << p2 << " p3 = " << p3 << std::endl;
+				//std::cout << "p4 = " << p4 << " p5 = " << p5 << " p6 = " << p6 << std::endl;
+				bool pos_exists = false;
 				for(int i = 0; i < 4; i++) {
 					A = p1[1] * (p2[2] - p3[2]) + p2[1] * (p3[2] - p1[2]) + p3[1] * (p1[2] - p2[2]);
 					B = p1[2] * (p2[0] - p3[0]) + p2[2] * (p3[0] - p1[0]) + p3[2] * (p1[0] - p2[0]);
@@ -986,20 +1000,19 @@ double Viewer::is_ball_in_wall() {
 					}
 					normal = rotation * Vector3D(A,B,C); normal.normalize();
 					dist = normal.dot(sphereCentre)-m_ball.m_radius-negD;
-					std::cout << "dist"<<i<<": " << dist << ", normal = " << normal << " negD = " << negD << std::endl;
-					if(dist > 0) {
-						return dist;
-					}
+					//std::cout << "dist"<<i<<": " << dist << ", normal = " << normal << " negD = " << negD << std::endl;
+					if (dist > 0) pos_exists = true;
 
 					if(i==0) { neg = true; p2 = p5; }
 					if(i==1) { neg = true; p1 = p6; p3 = p4; }
 					if(i==2) { neg = false; p2 =  Point3D(width/2 - (x+1),0,height/2 - z); }// back to p2
 
-					if( dist < min_dist) {
+					if( fabs(dist) < fabs(min_dist)) {
 						min_dist = dist;
 						m_wall_collision_normal = normal;
 					}
 				}
+				if (!pos_exists) return min_dist;
 			}
 		}
 	}
@@ -1026,7 +1039,7 @@ double Viewer::is_ball_below_floor() {
 	//std::cout << "A:" << A << "B:" << B << "C:" << C << std::endl;
 	m_floor_normal = Vector3D(A,B,C);
 	m_floor_normal = rotateZ * rotateX * m_floor_normal; m_floor_normal.normalize();
-	std::cout << "normal vector = " << m_floor_normal << std::endl;
+	//std::cout << "normal vector = " << m_floor_normal << std::endl;
 	
 	Vector3D sphereCentre = Vector3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
 
