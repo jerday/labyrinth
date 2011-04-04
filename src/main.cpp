@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv)
 {
-	std::string filename = "maze.png";
+	std::string filename = "maze_awesome.png";
 	if (argc >= 2) {
 		filename = argv[1];
 	}
