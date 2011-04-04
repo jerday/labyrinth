@@ -912,11 +912,11 @@ bool Viewer::do_physics() {
 		m_ball.m_velocity[2] *= 0.9999;
 		
 
-		std::cout << "ball velocity: " << m_ball.m_velocity << std::endl;
+		//std::cout << "ball velocity: " << m_ball.m_velocity << std::endl;
 		std::cout << "ball location: " << m_ball.m_location << std::endl;
 		std::cout << "tilt x = " << m_tilt_x << " ; tilt z = " << m_tilt_z << std::endl;
 		if(is_ball_in_wall() < 0) {
-			std::cout << "ball in wall" << std::endl;
+			std::cout << "BALL IN WALL" << std::endl;
 		}
 		invalidate();
 	}
@@ -951,34 +951,43 @@ double Viewer::is_ball_in_wall() {
 	Point3D p1,p2,p3,p4,p5,p6;
 	double A, B, C, dist;
 	Vector3D normal;
-	Matrix4x4 rotation = getRotate('x', m_tilt_x) * getRotate('z',m_tilt_z);
+	Matrix4x4 rotation = getRotate('x', -m_tilt_x) * getRotate('z',-m_tilt_z);
 	Vector3D sphereCentre = Vector3D(m_ball.m_location[0],m_ball.m_location[1],m_ball.m_location[2]);
 	double min_dist = 99999;
+	bool neg = false;
+	int width = m_maze->getWidth();
+	int height = m_maze->getHeight();
 	for(int x = 0; x < m_maze->getWidth(); x++) {
 		for(int z = 0; z < m_maze->getHeight(); z++) {
 			char id = (*m_maze)(x,z);
 			if(id == 'w') {
-				p1 = Point3D(x,0,z);
-				p2 = Point3D(x+1,0,z);
-				p3 = Point3D(x,1,z);
-				p4 = Point3D(x+1,0,z-1);
-				p5 = Point3D(x,1,z-1);
-				p6 = Point3D(x+1,1,z-1);
+				std::cout << "wall: (" << x <<"," << z << ")" << std::endl;
+				p1 = Point3D(-width/2 + x,0,-height/2 + z);
+				p2 = Point3D(-width/2 + x-1,0,-height/2 + z);
+				p3 = Point3D(-width/2 + x,1,-height/2 + z);
+				p4 = Point3D(-width/2 + x-1,0,-height/2 + z+1);
+				p5 = Point3D(-width/2 + x,1,-height/2 + z+1);
+				p6 = Point3D(-width/2 + x-1,1,-height/2 + z+1);
 
-				for(int i = 0; i < 3; i++) {
+				for(int i = 0; i < 4; i++) {
 					A = p1[1] * (p2[2] - p3[2]) + p2[1] * (p3[2] - p1[2]) + p3[1] * (p1[2] - p2[2]);
 					B = p1[2] * (p2[0] - p3[0]) + p2[2] * (p3[0] - p1[0]) + p3[2] * (p1[0] - p2[0]);
 					C = p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1]);
-
+					if(neg) {
+						A = -A;
+						B = -B;
+						C = -C;
+					}
 					normal = rotation * Vector3D(A,B,C); normal.normalize();
-					dist = m_floor_normal.dot(sphereCentre)-m_ball.m_radius;
-					if(dist < 0) {
-						return dist;
+					dist = normal.dot(sphereCentre)-m_ball.m_radius;
+					std::cout << "dist"<<i<<": " << dist << std::endl;
+					if(dist > 0) {
+						//return dist;
 					}
 
-					if(i==0) p2 = p5;
-					if(i==1) { p1 = p6; p3 = p4; }
-					if(i==2) p2 =  Point3D(x+1,0,z); // back to p2
+					if(i==0) { neg = true; p2 = p5; }
+					if(i==1) { neg = false; p1 = p6; p3 = p4; }
+					if(i==2) { neg = true; p2 =  Point3D(-width/2 + x-1,0,-height/2 + z); }// back to p2
 					min_dist = std::min(min_dist,dist);
 				}
 			}
