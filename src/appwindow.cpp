@@ -5,7 +5,7 @@
 
 AppWindow::AppWindow()
 {
-  set_title("title");
+  set_title("Labyrinth");
 
   using Gtk::Menu_Helpers::MenuElem;
   using Gtk::Menu_Helpers::RadioMenuElem;

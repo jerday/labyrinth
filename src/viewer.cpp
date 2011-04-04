@@ -827,6 +827,7 @@ void Viewer::draw_all() {
 	draw_maze();
 
 	if(m_mode == GAME) {
+	    glBindTexture(GL_TEXTURE_2D, m_wall_textures[2]);
 		m_ball.draw();
 	}
 

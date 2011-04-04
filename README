@@ -1,0 +1,21 @@
+Name: Jeremy Day
+Student Number: 20227375 
+User-id: jday
+Assignment: 5 (project)
+
+The final executable was compiled on this machine: gl06.student.cs
+
+How to invoke my program: ./game
+
+
+How to use my extra features: No extra features
+
+
+I have created the following data files, which are in the data directory:
+Several images and sound files are used but don't need to be examined.
+
+My program assumes the following: 
+You like incomplete maze games.
+
+Note: tga code taken from Internet. The code imports a tga image.
+
