@@ -639,7 +639,7 @@ void Viewer::draw_maze()
 	int height = m_maze->getHeight();
 
 	// floor
-	draw_floor(width+2,height+2);
+	draw_floor(width,height);
 
 	// outside walls
 	//draw_wall(-width/2-1, 0,  height/2+1, width+2,'x',Colour(0,0,1));
@@ -656,9 +656,8 @@ void Viewer::draw_maze()
 			if(id == 's' && !m_ball_set) {
 				std::cout << "width = " << width << " height = " << height << std::endl;
 				std::cout << "x = " << x << " z = " << z << std::endl;
-				//m_ball = Ball((int)width/2 + x - 0.5,3,(int)height/2 - z - 0.5,ball_radius);
+				m_ball = Ball((int)width/2 - x - 0.5,3,(int)height/2 - z + 0.5,ball_radius);
 				std::cout << "ball found" << std::endl;
-				m_ball = Ball(-width/2 + x - 0.5,3,-height/2 + z - 0.5,ball_radius);
 				m_ball_set = true;
 			}
 		}
@@ -990,8 +989,8 @@ double Viewer::is_ball_in_wall() {
 
 double Viewer::is_ball_below_floor() {
 	// Three points in the floor 'plane'
-	int width = m_maze->getWidth() + 2;
-	int height = m_maze->getHeight() + 2;
+	int width = m_maze->getWidth();
+	int height = m_maze->getHeight();
 	Matrix4x4 rotateX = getRotate('x',-m_tilt_x);
 	Matrix4x4 rotateZ = getRotate('z',-m_tilt_z);
 	Point3D p1 = /*rotateZ * rotateX * */ Point3D(0,0,0);
