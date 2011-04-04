@@ -652,10 +652,11 @@ void Viewer::draw_maze()
 		for(int z = 0; z < m_maze->getHeight(); z++) {
 			char id = (*m_maze)(x,z);
 			if(id == 'w') {
-				//draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
+				draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
 			}
 			if(id == 's' && !m_ball_set) {
-				m_ball = Ball((int)width/2 + x - 0.5,3,(int)height/2 - z - 0.5,ball_radius);
+				std::cout << "ball found" << std::endl;
+				m_ball = Ball(-width/2 + x - 0.5,3,-height/2 + z - 0.5,ball_radius);
 				m_ball_set = true;
 			}
 		}
@@ -912,6 +913,9 @@ bool Viewer::do_physics() {
 		std::cout << "ball velocity: " << m_ball.m_velocity << std::endl;
 		std::cout << "ball location: " << m_ball.m_location << std::endl;
 		std::cout << "tilt x = " << m_tilt_x << " ; tilt z = " << m_tilt_z << std::endl;
+		if(is_ball_in_wall() < 0) {
+			std::cout << "ball in wall" << std::endl;
+		}
 		invalidate();
 	}
 	return true;
@@ -980,7 +984,7 @@ double Viewer::is_ball_in_wall() {
 	}
 	return min_dist;
 }
-// doesn't work...
+
 double Viewer::is_ball_below_floor() {
 	// Three points in the floor 'plane'
 	int width = m_maze->getWidth() + 2;
