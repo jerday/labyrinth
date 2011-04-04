@@ -654,6 +654,8 @@ void Viewer::draw_maze()
 				//draw_wall(-width/2 + x,0,-height/2 + z,1,'x', Colour(1,0,0));
 			}
 			if(id == 's' && !m_ball_set) {
+				std::cout << "width = " << width << " height = " << height << std::endl;
+				std::cout << "x = " << x << " z = " << z << std::endl;
 				m_ball = Ball((int)width/2 + x - 0.5,3,(int)height/2 - z - 0.5,ball_radius);
 				m_ball_set = true;
 			}

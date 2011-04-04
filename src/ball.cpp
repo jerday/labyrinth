@@ -14,9 +14,13 @@ Ball::Ball(double x, double y, double z, double radius) {
 void Ball::draw() {
 	glPushMatrix();
     glTranslated(-m_location[0],m_location[1],-m_location[2]);
-    glRotated(m_angle[0],1.0,0.0,0.0);
-    glRotated(m_angle[2],0.0,0.0,1.0);
-
+    if (m_angle[0] != 0 && m_angle[2] != 0) {
+        double t_angle = 0.5*(m_angle[0]+m_angle[2]);
+	glRotated(t_angle,1.0,0.0,1.0);
+    } else {
+        glRotated(m_angle[0],1.0,0.0,0.0);
+        glRotated(m_angle[2],0.0,0.0,1.0);
+    }
 	glColor3d(0.5, 0.5, 0.5);
 	GLUquadric* quad = gluNewQuadric();
     gluQuadricNormals(quad, GLU_SMOOTH);
